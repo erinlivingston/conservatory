@@ -26,13 +26,6 @@
     applyViewportAspectFromLoadedImage();
   }
 
-  function readSlider(id, fallback) {
-    const el = document.getElementById(id);
-    if (!el || el.value === "") return fallback;
-    const n = Number(el.value);
-    return Number.isFinite(n) ? n : fallback;
-  }
-
   const skyPresets = {
     brightDay: {
       horizon: ["#E6F7FF", "#D9F0FC", "#CBE8F8"],
@@ -92,12 +85,8 @@
   };
 
   const skySelectEl = document.getElementById("sky-preset");
-  const plantStyleEl = document.getElementById("plant-style");
-  const plantDensityEl = document.getElementById("plant-density");
-  const stemVisibilityEl = document.getElementById("stem-visibility");
-
   let currentSkyPresetKey = skySelectEl?.value || "softDusk";
-  let currentPlantStyle = plantStyleEl?.value || "classic";
+  const currentPlantStyle = "classic";
 
   const skySketch = (p) => {
     let activeSkyPreset = skyPresets[currentSkyPresetKey] || skyPresets.softDusk;
@@ -225,12 +214,7 @@
     ];
 
     function stemWeightMult() {
-      const v = readSlider("stem-visibility", 50) / 100;
-      return p.lerp(0.35, 1.85, v);
-    }
-
-    function densityT() {
-      return readSlider("plant-density", 65) / 100;
+      return 1;
     }
 
     p.setup = function setup() {
@@ -259,7 +243,7 @@
       plants.length = 0;
       const style = plantStyles[currentPlantStyle] || plantStyles.classic;
       const minDimension = Math.min(p.width, p.height);
-      const d = densityT();
+      const d = 0.65;
 
       plantAnchors.forEach((anchor, idx) => {
         const depth = p.floor(p.random(style.depth[0], style.depth[1] + 1));
@@ -394,16 +378,4 @@
     currentSkyPresetKey = event.target.value;
   });
 
-  plantStyleEl?.addEventListener("change", (event) => {
-    currentPlantStyle = event.target.value;
-    plantInstance.regeneratePlants?.();
-  });
-
-  plantDensityEl?.addEventListener("input", () => {
-    plantInstance.regeneratePlants?.();
-  });
-
-  stemVisibilityEl?.addEventListener("input", () => {
-    /* stem is draw-time only; no regen needed */
-  });
 })();

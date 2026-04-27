@@ -1,29 +1,8 @@
-/**
- * Rainforest room: same layer stack as Palm House.
- *
- * Fruiting L-system adapted from Eric Davidson’s generative-plants turtle
- * (https://github.com/erdavids/Portfolio/tree/master/generative-plants).
- *
- * Flower overlays are temporarily disabled while the jungle mist effect
- * is being tuned.
- */
 (function initRainforest() {
   const skyLayerEl = document.getElementById("sky-layer");
-  const plantLayerEl = document.getElementById("plant-layer");
   const greenhouseImg = document.getElementById("greenhouse-img");
   const sceneViewportEl = greenhouseImg?.closest(".scene-viewport");
-  const greenhouseSelect = document.getElementById("greenhouse-asset");
   const skySelectEl = document.getElementById("sky-preset");
-  const regenBtn = document.getElementById("regenerate-canopy");
-  const iterationsEl = document.getElementById("ls-iterations");
-  const ROOM_ASSET_BY_VIEW = {
-    jungle: "assets/jungle.png",
-    rainforest: "assets/jungle.png",
-    "palm-house": "assets/palmhouse.png",
-    palmhouse: "assets/palmhouse.png",
-    desert: "assets/desert.png",
-    aquatic: "assets/aquatic.png"
-  };
 
   function getLayerSize(layerEl) {
     const rect = layerEl.getBoundingClientRect();
@@ -40,27 +19,6 @@
     if (!w || !h) return;
     sceneViewportEl.style.setProperty("--scene-aspect", `${w} / ${h}`);
     window.dispatchEvent(new Event("resize"));
-  }
-
-  function setGreenhouseAsset(src) {
-    if (!greenhouseImg) return;
-    const currentSrc = greenhouseImg.getAttribute("src");
-    if (currentSrc === src) {
-      applyViewportAspectFromLoadedImage();
-      return;
-    }
-    greenhouseImg.src = src;
-  }
-
-  function applyInitialViewFromQuery() {
-    const params = new URLSearchParams(window.location.search);
-    const rawView = params.get("view");
-    if (!rawView) return;
-    const view = rawView.trim().toLowerCase();
-    const src = ROOM_ASSET_BY_VIEW[view];
-    if (!src) return;
-    if (greenhouseSelect) greenhouseSelect.value = src;
-    setGreenhouseAsset(src);
   }
 
   const skyPresets = {
@@ -138,7 +96,6 @@
   if (greenhouseImg?.complete) {
     applyViewportAspectFromLoadedImage();
   }
-  applyInitialViewFromQuery();
 
   const skySketch = (p) => {
     let activeSkyPreset = skyPresets[currentSkyPresetKey] || skyPresets.rainforestMist;
@@ -227,206 +184,13 @@
     };
   };
 
-  function defaultLsOpts(minDim) {
-    const baseLen = minDim * 0.11;
-    return {
-      axiom: "F",
-      iterations: 5,
-      length: baseLen,
-      lengthChange: 0.5,
-      lengthDrift: 0.05,
-      angle: 25,
-      angleDrift: 5,
-      lineColor: [34, 52, 38],
-      lineWidth: 1.2,
-      lineOpacity: 150,
-      opacityDrift: 50,
-      fruit: [200, 140, 100],
-      redDrift: 20,
-      greenDrift: 20,
-      blueDrift: 20,
-      rule0a: "F",
-      rule0b: "Go[-F]S[+G+F*][+F]S[-G-F*]",
-      rule1a: "G",
-      rule1b: "G[+F]G[-F]S"
-    };
-  }
-
-  function buildRules(opts) {
-    return [
-      { a: opts.rule0a, b: opts.rule0b },
-      { a: opts.rule1a, b: opts.rule1b }
-    ];
-  }
-
-  function applyRulesOnce(sentence, rules) {
-    let next = "";
-    for (let i = 0; i < sentence.length; i += 1) {
-      const c = sentence.charAt(i);
-      let found = false;
-      for (let j = 0; j < rules.length; j += 1) {
-        if (c === rules[j].a) {
-          next += rules[j].b;
-          found = true;
-          break;
-        }
-      }
-      if (!found) next += c;
-    }
-    return next;
-  }
-
-  function buildLSystem(p, opts, rules) {
-    let sentence = opts.axiom;
-    let len = opts.length;
-    const iters = p.constrain(opts.iterations, 1, 8);
-    for (let iter = 0; iter < iters; iter += 1) {
-      len *= opts.lengthChange + p.random(-opts.lengthDrift, opts.lengthDrift);
-      sentence = applyRulesOnce(sentence, rules);
-    }
-    return { sentence, len };
-  }
-
-  function turtleFruitingTree(p, opts, sentence, segLen, ox, oy, seed) {
-    let ang;
-    let circleCalls = 0;
-    p.randomSeed(seed + 50_003);
-    p.push();
-    p.translate(ox, oy);
-    p.rotate(p.random(-0.45, 0.45));
-    p.strokeWeight(opts.lineWidth);
-
-    for (let i = 0; i < sentence.length; i += 1) {
-      const current = sentence.charAt(i);
-      if (current === "F" || current === "G") {
-        p.stroke(
-          opts.lineColor[0],
-          opts.lineColor[1],
-          opts.lineColor[2],
-          p.constrain(
-            opts.lineOpacity + p.random(-opts.opacityDrift, opts.opacityDrift),
-            40,
-            255
-          )
-        );
-        p.line(0, 0, 0, -segLen);
-        p.translate(0, -segLen);
-      } else if (current === "+") {
-        ang = p.radians(p.random(opts.angle - opts.angleDrift, opts.angle + opts.angleDrift));
-        p.rotate(ang);
-      } else if (current === "-") {
-        ang = p.radians(p.random(opts.angle - opts.angleDrift, opts.angle + opts.angleDrift));
-        p.rotate(-ang);
-      } else if (current === "[") {
-        p.push();
-      } else if (current === "]") {
-        p.pop();
-      } else if (current === "S") {
-        p.translate(0, -segLen / 4);
-      } else if (current === "*") {
-        p.noFill();
-        circleCalls += 1;
-        if (circleCalls > 28 && p.random(1) < 0.42) {
-          p.noStroke();
-          p.fill(
-            opts.fruit[0] + p.random(-opts.redDrift, opts.redDrift),
-            opts.fruit[1] + p.random(-opts.greenDrift, opts.greenDrift),
-            opts.fruit[2] + p.random(-opts.blueDrift, opts.blueDrift),
-            220
-          );
-          p.circle(0, 0, p.random(3, 11));
-          p.noFill();
-        }
-      }
-    }
-    p.pop();
-  }
-
-  const plantSketch = (p) => {
-    let treeSeeds = [12041, 88302, 55120];
-    let treeCache = null;
-
-    function readIterations() {
-      const v = Number(iterationsEl?.value);
-      if (!Number.isFinite(v)) return 5;
-      return p.constrain(Math.round(v), 3, 7);
-    }
-
-    function invalidateTreeCache() {
-      treeCache = null;
-    }
-
-    function regenerateCanopy() {
-      treeSeeds = [
-        p.floor(p.random(10_000, 99_999)),
-        p.floor(p.random(10_000, 99_999)),
-        p.floor(p.random(10_000, 99_999))
-      ];
-      invalidateTreeCache();
-    }
-
-    p.setup = function setup() {
-      const { width, height } = getLayerSize(plantLayerEl);
-      p.createCanvas(width, height).parent("plant-layer");
-    };
-
-    p.draw = function draw() {
-      p.clear();
-      const minDim = p.min(p.width, p.height);
-      const opts = defaultLsOpts(minDim);
-      opts.iterations = readIterations();
-      const rules = buildRules(opts);
-
-      const bases = [
-        { x: p.width * 0.22, y: p.height + minDim * 0.04 },
-        { x: p.width * 0.52, y: p.height + minDim * 0.02 },
-        { x: p.width * 0.78, y: p.height + minDim * 0.05 }
-      ];
-
-      if (!treeCache) {
-        treeCache = bases.map((_, idx) => {
-          p.randomSeed(treeSeeds[idx]);
-          return buildLSystem(p, opts, rules);
-        });
-      }
-
-      bases.forEach((base, idx) => {
-        const { sentence, len } = treeCache[idx];
-        turtleFruitingTree(p, opts, sentence, len, base.x, base.y, treeSeeds[idx]);
-      });
-
-    };
-
-    p.windowResized = function windowResized() {
-      const { width, height } = getLayerSize(plantLayerEl);
-      p.resizeCanvas(width, height);
-      invalidateTreeCache();
-    };
-
-    p.regenerateCanopy = regenerateCanopy;
-    p.invalidateTreeCache = invalidateTreeCache;
-  };
-
   new p5(skySketch);
-  const plantInstance = new p5(plantSketch);
+  if (typeof window.initRainforestPlants === "function") {
+    window.initRainforestPlants("plant-layer");
+  }
 
   skySelectEl?.addEventListener("change", (e) => {
     currentSkyPresetKey = e.target.value;
   });
-
-  greenhouseSelect?.addEventListener("change", (e) => {
-    setGreenhouseAsset(e.target.value);
-  });
-
-  regenBtn?.addEventListener("click", () => {
-    plantInstance.regenerateCanopy?.();
-  });
-
-  function invalidateOnIterations() {
-    plantInstance.invalidateTreeCache?.();
-  }
-
-  iterationsEl?.addEventListener("input", invalidateOnIterations);
-  iterationsEl?.addEventListener("change", invalidateOnIterations);
 })();
 

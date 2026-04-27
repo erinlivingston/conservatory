@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conservatory | Desert</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js" defer></script>
+    <script src="scripts/aloe.js" defer></script>
+    <script src="scripts/desert.js" defer></script>
+  </head>
+  <body class="room-page">
+    <div class="scene-shell">
+      <header class="room-header">
+        <h1>Desert</h1>
+      </header>
+
+      <div class="scene-workbench">
+        <main class="scene-viewport">
+          <div id="sky-layer" class="layer sky-layer" aria-hidden="true"></div>
+          <img
+            id="greenhouse-img"
+            src="assets/desert.png"
+            alt=""
+            class="greenhouse-layer"
+            aria-hidden="true"
+          />
+          <div id="plant-layer" class="layer plant-layer" aria-hidden="true"></div>
+        </main>
+      </div>
+
+      <nav class="room-nav" aria-label="Room navigation">
+        <a class="room-chip" href="palm-house.html">Palm House</a>
+        <a class="room-chip" href="rainforest.html">Rainforest</a>
+        <a class="room-chip active" href="desert.html">Desert</a>
+        <a class="room-chip" href="aquatic.html">Aquatic</a>
+      </nav>
+
+      <aside class="control-rail below-viewport" aria-label="Scene controls">
+        <h2>Desert Lab</h2>
+        <label class="control-group" for="sky-preset">
+          Sky preset
+          <select id="sky-preset">
+            <option value="goldenHour" selected>Golden hour</option>
+            <option value="brightDay">Bright day</option>
+            <option value="overcast">Overcast</option>
+            <option value="stormy">Stormy</option>
+            <option value="softDusk">Soft dusk</option>
+          </select>
+        </label>
+        <p class="control-note">Plant tuning controls are temporarily hidden while desert effects are refined.</p>
+      </aside>
+    </div>
+  </body>
+</html>
