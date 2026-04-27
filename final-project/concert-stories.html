@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Concert Stories</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script>
+      (function () {
+        try {
+          if (new URLSearchParams(location.search).has("intro")) return;
+          if (sessionStorage.getItem("concertStoriesIntroSeen")) {
+            document.documentElement.classList.add("intro-skip");
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div
+      id="intro-overlay"
+      class="intro-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="intro-heading"
+    >
+      <div class="intro-overlay__dim" aria-hidden="true"></div>
+      <div class="intro-overlay__spotlight" aria-hidden="true"></div>
+      <div class="intro-curtain intro-curtain--left" aria-hidden="true"></div>
+      <div class="intro-curtain intro-curtain--right" aria-hidden="true"></div>
+      <div class="intro-overlay__panel">
+        <p id="intro-heading" class="intro-overlay__title">Concert Stories</p>
+        <p class="intro-overlay__sub">Scroll the timeline — each dot is a night out.</p>
+        <button type="button" id="intro-enter" class="intro-overlay__btn">Enter</button>
+      </div>
+    </div>
+
+    <header class="page-header">
+      <h1>Concert Stories</h1>
+      <p class="lede">
+        In 2025 I began a project of collecting data for all concerts I recall attending through my life. From this data I created
+        <a href="https://mariacatoni.commons.gc.cuny.edu/concerts-2000-2025/">a series of visualizations</a>
+        showing my attendance history, but in the process, I felt the stories behind my experiences were lost. This is my attempt to retroactively collect stories, pictures, and videos and create a journal for some of the most memorable events I attended between 2000 and 2025.
+      </p>
+      <p class="status" data-status>Loading…</p>
+    </header>
+
+    <main class="page-main" tabindex="-1">
+      <div id="timeline-vertical" class="timeline-vertical-root" aria-label="Concerts from 2000 through 2025, vertical"></div>
+
+      <section class="dreams-section" aria-labelledby="dreams-heading">
+        <h2 id="dreams-heading" class="dreams-section__title">My concert dreams</h2>
+        <p class="dreams-section__lede">
+          Artists I still hope to see live — swap in photos, tour wishes, or ticket fantasies. Placeholder copy for now.
+        </p>
+        <ul class="dreams-grid">
+          <li class="dreams-card">
+            <div class="dreams-card__photo" aria-hidden="true"></div>
+            <h3 class="dreams-card__name">Björk (homogenic live)</h3>
+            <p class="dreams-card__blurb">Placeholder: full orchestral dates, outdoor only.</p>
+          </li>
+          <li class="dreams-card">
+            <div class="dreams-card__photo" aria-hidden="true"></div>
+            <h3 class="dreams-card__name">Kate Bush</h3>
+            <p class="dreams-card__blurb">Placeholder: the one residency that got away.</p>
+          </li>
+          <li class="dreams-card">
+            <div class="dreams-card__photo" aria-hidden="true"></div>
+            <h3 class="dreams-card__name">Robyn (body talk tour)</h3>
+            <p class="dreams-card__blurb">Placeholder: dance floor up front.</p>
+          </li>
+          <li class="dreams-card">
+            <div class="dreams-card__photo" aria-hidden="true"></div>
+            <h3 class="dreams-card__name">Talking Heads reunion</h3>
+            <p class="dreams-card__blurb">Placeholder: impossible dream, still on the list.</p>
+          </li>
+          <li class="dreams-card">
+            <div class="dreams-card__photo" aria-hidden="true"></div>
+            <h3 class="dreams-card__name">Prince (time machine)</h3>
+            <p class="dreams-card__blurb">Placeholder: purple ticket graphic goes here.</p>
+          </li>
+          <li class="dreams-card">
+            <div class="dreams-card__photo" aria-hidden="true"></div>
+            <h3 class="dreams-card__name">Your pick</h3>
+            <p class="dreams-card__blurb">Placeholder: add another dream row anytime.</p>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      
+    </footer>
+
+    <script type="module" src="./js/timeline.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1080 @@
+/* --------------------------------------------------------------------------
+   Design tokens — page colors, typography accents, shadows, and layout vars
+   used across the timeline and popover. */
+html {
+  font-size: 112.5%;
+}
+
+:root {
+  color-scheme: light;
+  /* Page background: timeline cream (#F2EDE4) darkened ~20% (80% color, 20% black). */
+  --bg: #F4E3FF;
+  --text: #322E34;
+  --muted: rgba(50, 46, 52, 0.72);
+  --border: rgba(50, 46, 52, 0.12);
+  --dot: #A962D9;
+  /* Prior hover #9A35DE, darkened 20% toward black (80% / 20% mix). */
+  --dot-hover: color-mix(in srgb, #9A35DE 80%, black);
+  --shadow: 0 10px 30px rgba(50, 46, 52, 0.08);
+  --axis: rgba(50, 46, 52, 0.22);
+  --dot-gap: 18px;
+  /* Matches timeline card width so header status lines up with the timeline column. */
+  --timeline-max-width: 880px;
+}
+
+/* Global box model and base page typography. */
+* {
+  box-sizing: border-box;
+}
+
+/* Page defaults: Courier monospace, background/text from CSS variables. */
+body {
+  margin: 0;
+  font-family: Courier, "Courier New", monospace;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Inline code samples match body Courier stack, slightly smaller than body text. */
+code {
+  font-family: Courier, "Courier New", monospace;
+  font-size: 0.95em;
+}
+
+/* Main layout: centered column for header, content, and footer. */
+.page-header,
+.page-main,
+.page-footer {
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.page-header {
+  padding: 28px 0 10px;
+}
+
+.page-main {
+  padding: 10px 0 28px;
+}
+
+.page-footer {
+  padding: 0 0 28px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Page title, intro paragraph, and status line above the timeline. */
+h1 {
+  max-width: var(--timeline-max-width);
+  margin: 0 auto 10px;
+  padding-block: 12px;
+  border-top: 2px solid #401835;
+  border-bottom: 2px solid #401835;
+  text-align: center;
+  font-size: clamp(100px, 3.1vw, 200px);
+  letter-spacing: -0.02em;
+  text-shadow: 0.02em 0.02em 0 #9077A1;
+}
+
+.lede {
+  margin: 0 auto 10px;
+  max-width: 80ch;
+  text-align: left;
+  color: var(--muted);
+  line-height: 1.55;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.lede a {
+  color: var(--dot);
+}
+
+.lede a:hover {
+  color: var(--dot-hover);
+}
+
+.status {
+  margin: 14px auto 0;
+  max-width: var(--timeline-max-width);
+  text-align: left;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  font-style: italic;
+}
+
+/* --- My concert dreams (static placeholders below timeline) --- */
+.dreams-section {
+  max-width: var(--timeline-max-width);
+  margin: 40px auto 0;
+  padding: 28px 16px 32px;
+  border-top: 2px solid #401835;
+  border-bottom: 2px solid #401835;
+  background: #f2ede4;
+  box-shadow: 0 10px 28px rgba(50, 46, 52, 0.06);
+}
+
+.dreams-section__title {
+  margin: 0 0 12px;
+  padding-block: 8px;
+  border-top: 1px solid rgba(64, 24, 53, 0.35);
+  border-bottom: 1px solid rgba(64, 24, 53, 0.35);
+  text-align: center;
+  font-size: clamp(1.65rem, 4.2vw, 2.35rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-shadow: 0.04em 0.04em 0 #9077a1;
+}
+
+.dreams-section__lede {
+  margin: 0 auto 22px;
+  max-width: 70ch;
+  text-align: left;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.dreams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dreams-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 12px 14px;
+  border: 1px solid rgba(64, 24, 53, 0.18);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dreams-card__photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 88px;
+  border: 1px dashed rgba(50, 46, 52, 0.28);
+  background: rgba(169, 98, 217, 0.07);
+}
+
+.dreams-card__name {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.dreams-card__blurb {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* --- Opening overlay (curtain + spotlight; z-index above popover) --- */
+html.intro-skip .intro-overlay {
+  display: none !important;
+}
+
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.intro-overlay.intro-overlay--dismissed,
+.intro-overlay[hidden] {
+  display: none !important;
+}
+
+.intro-overlay__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 10, 22, 0.66);
+  transition: opacity 0.65s ease;
+  z-index: 0;
+}
+
+.intro-overlay--exiting .intro-overlay__dim {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-overlay__spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 58% 46% at 50% 36%,
+    rgba(255, 252, 245, 0.22) 0%,
+    transparent 62%
+  );
+  pointer-events: none;
+  transition: opacity 0.72s ease;
+  z-index: 1;
+}
+
+.intro-overlay--exiting .intro-overlay__spotlight {
+  opacity: 0;
+}
+
+.intro-curtain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  z-index: 2;
+  transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.25);
+}
+
+.intro-curtain--left {
+  left: 0;
+  transform-origin: left center;
+  background: linear-gradient(90deg, #1f0a18 0%, #401835 45%, #4a1c3d 100%);
+}
+
+.intro-curtain--right {
+  right: 0;
+  transform-origin: right center;
+  background: linear-gradient(270deg, #1f0a18 0%, #401835 45%, #4a1c3d 100%);
+}
+
+.intro-overlay--exiting .intro-curtain--left {
+  transform: translateX(-100%);
+}
+
+.intro-overlay--exiting .intro-curtain--right {
+  transform: translateX(100%);
+}
+
+.intro-overlay__panel {
+  position: relative;
+  z-index: 4;
+  max-width: min(32ch, calc(100vw - 40px));
+  padding: 28px 22px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(50, 46, 52, 0.35);
+  backdrop-filter: blur(6px);
+  transition: opacity 0.48s ease, transform 0.48s ease;
+}
+
+.intro-overlay--exiting .intro-overlay__panel {
+  opacity: 0;
+  transform: translateY(-14px);
+}
+
+.intro-overlay__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.35rem, 4vw, 1.85rem);
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f2ede4;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.intro-overlay__sub {
+  margin: 0 0 22px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(242, 237, 228, 0.88);
+}
+
+.intro-overlay__btn {
+  display: inline-block;
+  margin: 0;
+  padding: 12px 28px;
+  border: 2px solid rgba(242, 237, 228, 0.85);
+  background: rgba(169, 98, 217, 0.35);
+  color: #f2ede4;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.intro-overlay__btn:hover {
+  background: rgba(169, 98, 217, 0.55);
+}
+
+.intro-overlay__btn:focus-visible {
+  outline: 3px solid rgba(242, 237, 228, 0.9);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-curtain,
+  .intro-overlay__dim,
+  .intro-overlay__spotlight,
+  .intro-overlay__panel {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- Vertical timeline (decades, years, axis, dots) --- */
+
+/* Wrapper that separates the timeline from the intro with spacing and a top rule. */
+.vertical-timeline-block {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+
+/* Timeline “card”: thick top/bottom border on the outside, gap, then thin border on the wrap (next to content). */
+.timeline-vertical-root {
+  max-width: var(--timeline-max-width);
+  margin-inline: auto;
+  border: none;
+  border-top: 4px solid #401835;
+  border-bottom: 4px solid #401835;
+  border-left: 0.5px solid #401835;
+  border-right: 0.5px solid #401835;
+  background: #f2ede4;
+  padding: 20px 16px 20px;
+}
+
+/* Extra horizontal/vertical breathing room inside the timeline card. */
+.timeline-vertical-wrap {
+  padding: 22px 14px 22px;
+  border-top: 1px solid #401835;
+  border-bottom: 1px solid #401835;
+}
+
+/* Inner column: flex stack of decades/years; hosts the centered axis pseudo-element. */
+.timeline-vertical-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Vertical line through the middle of the timeline (behind year labels and dots). */
+.timeline-vertical-inner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--axis);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* One decade section: stacks header row then year rows above the axis. */
+.decade-block {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Three-column grid: left blurb | center axis gutter | right blurb (decade titles/copy). */
+.decade-header-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 62px minmax(0, 1fr);
+  align-items: start;
+  padding-bottom: 10px;
+}
+
+.decade-block:not(:first-child) .decade-header-row {
+  margin-top: 12px;
+  padding-top: 18px;
+}
+
+.decade-block:first-child .decade-header-row {
+  padding-top: 14px;
+}
+
+/* Center column of the decade header (reserved for alignment with the year axis). */
+.decade-header-axis {
+  flex-shrink: 0;
+}
+
+/* Left/right cells for decade title and description; empty sides stay inert for layout. */
+.decade-header-side {
+  min-width: 0;
+}
+
+.decade-header-side--empty {
+  pointer-events: none;
+}
+
+.decade-header-side--filled.decade-header-side--left {
+  padding-right: 10px;
+}
+
+.decade-header-side--filled.decade-header-side--left .decade-header-inner {
+  text-align: right;
+}
+
+.decade-header-side--filled.decade-header-side--right {
+  padding-left: 10px;
+}
+
+.decade-header-side--filled.decade-header-side--right .decade-header-inner {
+  text-align: left;
+}
+
+.decade-header-inner {
+  max-width: 42ch;
+}
+
+.decade-header-side--filled.decade-header-side--left .decade-header-inner {
+  margin-left: auto;
+}
+
+.decade-header-side--filled.decade-header-side--right .decade-header-inner {
+  margin-right: auto;
+}
+
+/* Large era numeral (2000s / 2010s / 2020s); scroll-linked scale via .decade-block--active . */
+.decade-era-label {
+  margin: 0 0 10px;
+  line-height: 1;
+}
+
+.decade-era-number {
+  display: inline-block;
+  font-size: clamp(2rem, 5.5vw, 3.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  opacity: 0.82;
+  transform: scale(0.94);
+  transform-origin: 50% 50%;
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease,
+    text-shadow 0.45s ease;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.decade-block--active .decade-era-number {
+  opacity: 1;
+  transform: scale(1.12);
+  text-shadow:
+    0 0 0 rgba(169, 98, 217, 0.35),
+    0 3px 14px rgba(64, 24, 53, 0.18);
+}
+
+.decade-header-side--filled.decade-header-side--left .decade-era-label {
+  text-align: right;
+}
+
+.decade-header-side--filled.decade-header-side--right .decade-era-label {
+  text-align: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .decade-era-number {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.decade-title {
+  margin: 0 0 8px;
+  font-size: clamp(30px, 3.35vw, 40px);
+  font-weight: 720;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: var(--text);
+  transition: opacity 0.4s ease;
+}
+
+.decade-block--active .decade-title {
+  opacity: 1;
+}
+
+.decade-block:not(.decade-block--active) .decade-title {
+  opacity: 0.88;
+}
+
+.decade-header-blurb {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* Single year row: same 3-column grid as the decade header — events | year pill | events. */
+.year-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 62px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 44px;
+}
+
+/* Extra vertical rhythm between consecutive year labels (same decade). */
+.decade-block > .year-row + .year-row {
+  margin-top: 16px;
+}
+
+/* Year dividers only under the axis and the events column — not under the side with no dots. */
+.year-axis-cell,
+.year-side--events {
+  border-bottom: 1px solid rgba(50, 46, 52, 0.06);
+}
+
+.year-row:last-child .year-axis-cell,
+.year-row:last-child .year-side--events {
+  border-bottom: 0;
+}
+
+/* Left/right columns: flex rows of event dots, aligned toward the center axis. */
+.year-side {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-width: 0;
+  padding: 6px 0;
+  gap: var(--dot-gap);
+}
+
+.year-side--left {
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.year-side--right {
+  justify-content: flex-start;
+  padding-left: 10px;
+}
+
+/* Extra gutter between event dots and the center year label (axis). */
+.year-side--events.year-side--left {
+  padding-right: 22px;
+}
+
+.year-side--events.year-side--right {
+  padding-left: 22px;
+}
+
+.year-side--empty {
+  pointer-events: none;
+}
+
+/* Middle cell: centers the year label on the vertical axis. */
+.year-axis-cell {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.year-axis-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  padding: 7px 10px;
+  background: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: rgba(255, 255, 255, 0.92);
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(50, 46, 52, 0.18);
+}
+
+/* Wrap for each concert dot + hover preview (not the full popover). */
+.event-dot-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.event-dot-preview {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(240px, calc(100vw - 24px));
+  padding: 10px 10px 12px;
+  border: 1px solid var(--border);
+  background: #f2ede4;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateX(-50%) translateY(6px);
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+  text-align: left;
+}
+
+.event-dot-wrap:hover .event-dot-preview,
+.event-dot-wrap:focus-within .event-dot-preview {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.event-dot-preview__badge {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 2px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f2ede4;
+  background: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.event-dot-preview__date {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.event-dot-preview__artists {
+  display: block;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.event-dot-preview__photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 64px;
+  border: 1px dashed rgba(50, 46, 52, 0.28);
+  background: rgba(169, 98, 217, 0.08);
+}
+
+.event-dot-preview__note {
+  display: block;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* Decorative “player” strip — no real audio; spans only inside aria-hidden card. */
+.event-dot-preview__player {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.event-dot-preview__player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.event-dot-preview__play {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(50, 46, 52, 0.2);
+  background: rgba(169, 98, 217, 0.15);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text);
+  user-select: none;
+}
+
+.event-dot-preview__track {
+  flex: 1 1 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.event-dot-preview__track-title {
+  font-size: 10px;
+  font-weight: 650;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-dot-preview__progress {
+  height: 5px;
+  border-radius: 2px;
+  background: rgba(50, 46, 52, 0.12);
+  overflow: hidden;
+}
+
+.event-dot-preview__progress-fill {
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: color-mix(in srgb, var(--dot) 75%, var(--text));
+  border-radius: 2px;
+}
+
+.event-dot-preview__link-ph {
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--dot);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: default;
+}
+
+/* Clickable timeline marker (opens the event popover via JS). */
+.event-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dot);
+  transform: scale(1.5);
+  transform-origin: center;
+  cursor: pointer;
+}
+
+/* Milestone dates: outer ring = dot fill mixed 30% toward black; 2px. */
+.event-dot.event-dot--special-date {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dot) 70%, black);
+}
+
+/* --- Event detail popover (fixed overlay) --- */
+
+/* Fixed-position event details panel: sizing, stacking, and scroll containment. */
+.event-detail-popover {
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  min-width: 168px;
+  max-width: min(300px, calc(100vw - 16px), calc(100svw - 16px));
+  padding: 0;
+  border: 2px solid var(--border);
+  background: #F2EDE4;
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  max-height: min(
+    85vh,
+    85svh,
+    calc(100vh - 16px),
+    calc(100svh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))
+  );
+  overflow: hidden;
+}
+
+/* Popover uses square corners (overrides nested border-radius). */
+.event-detail-popover,
+.event-detail-popover * {
+  border-radius: 0;
+}
+
+.event-detail-popover[hidden] {
+  display: none !important;
+}
+
+/* Popover top bar: date/title area and close control (inverted: dark bar, light type like the body panel). */
+.event-detail-popover-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid rgba(242, 237, 228, 0.2);
+  background: var(--text);
+  color: #f2ede4;
+}
+
+/* Close button: hit target, hover, and keyboard focus ring. */
+.event-detail-popover-close {
+  position: static;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.event-detail-popover-close:hover {
+  color: #f2ede4;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.event-detail-popover-close:focus-visible {
+  outline: 2px solid rgba(47, 111, 237, 0.45);
+  outline-offset: 2px;
+}
+
+/* Scrollable body of the popover (long text and media). */
+.event-detail-popover-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px 14px 12px 14px;
+}
+
+/* Wider popover when showing rich content (e.g. images + long copy). */
+.event-detail-popover--rich {
+  max-width: min(420px, calc(100vw - 16px), calc(100svw - 16px));
+}
+
+/* Divider between the main popover copy and the optional “rich” block below. */
+.event-detail-popover-rich {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* Typography inside the popover: lead line, paragraphs, last-paragraph spacing tweak. */
+.event-detail-popover-lead {
+  margin: 0 0 8px;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.event-detail-popover-body {
+  margin: 0 0 0.65em;
+  color: var(--text);
+}
+
+.event-detail-popover-body:last-of-type {
+  margin-bottom: 0.35em;
+}
+
+/* Images and figures: responsive width inside the popover. */
+.event-detail-popover-rich-media {
+  margin: 0 0 12px;
+}
+
+.event-detail-popover-figure {
+  margin: 0;
+}
+
+.event-detail-popover-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.event-detail-popover-youtube {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0;
+}
+
+.event-detail-popover-youtube iframe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Image carousel: track, slides, prev/next buttons, counter, and disabled state. */
+.event-detail-popover-slideshow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-detail-popover-slides-viewport {
+  overflow: hidden;
+}
+
+.event-detail-popover-slides-track {
+  display: flex;
+  transition: transform 0.22s ease;
+}
+
+.event-detail-popover-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.event-detail-popover-slideshow-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.event-detail-popover-slideshow-btn {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: #F2EDE4;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.event-detail-popover-slideshow-btn:hover:not(:disabled) {
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.event-detail-popover-slideshow-btn:focus-visible {
+  outline: 2px solid rgba(47, 111, 237, 0.45);
+  outline-offset: 2px;
+}
+
+.event-detail-popover-slideshow-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.event-detail-popover-slideshow-counter {
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 3.5em;
+  text-align: center;
+}
+
+/* Header line: event date (truncates with ellipsis if too long). */
+.event-detail-popover-date {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.25;
+  color: inherit;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Artist list in the popover header and link styling. */
+.event-detail-popover-artists {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.event-detail-popover-artist-link {
+  color: var(--dot);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.event-detail-popover-artist-link:hover {
+  color: var(--dot-hover);
+}
+
+/* Timeline dot feedback on hover and keyboard focus. */
+.event-dot:hover {
+  background: var(--dot-hover);
+  transform: scale(1.59);
+}
+
+.event-dot.event-dot--special-date:hover {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot-hover) 50%, black);
+}
+
+.event-dot:focus-visible {
+  outline: 3px solid rgba(47, 111, 237, 0.35);
+  outline-offset: 2px;
+}
+
+/* Narrow screens: slightly tighter grid gutters and timeline card padding. */
+@media (max-width: 720px) {
+  .year-row,
+  .decade-header-row {
+    grid-template-columns: minmax(0, 1fr) 58px minmax(0, 1fr);
+  }
+
+  .year-side--left {
+    padding-right: 6px;
+  }
+
+  .year-side--right {
+    padding-left: 6px;
+  }
+
+  .year-side--events.year-side--left {
+    padding-right: 16px;
+  }
+
+  .year-side--events.year-side--right {
+    padding-left: 16px;
+  }
+
+  .decade-header-side--filled.decade-header-side--left {
+    padding-right: 6px;
+  }
+
+  .decade-header-side--filled.decade-header-side--right {
+    padding-left: 6px;
+  }
+
+  .timeline-vertical-root {
+    padding: 16px 12px 16px;
+  }
+
+  .dreams-section {
+    margin-top: 28px;
+    padding: 22px 12px 26px;
+  }
+
+  .dreams-grid {
+    gap: 14px;
+  }
+}
