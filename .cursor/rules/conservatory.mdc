@@ -1,0 +1,28 @@
+---
+description: Project coding standards — vanilla JS, file layout, and agent behavior
+alwaysApply: true
+---
+
+# Conservatory project rules
+
+## Stack and dependencies
+
+- Use vanilla JavaScript only. Do not use frameworks or libraries unless the user explicitly asks.
+- Before adding any external library or dependency, ask the user first.
+
+## Structure and style
+
+- Keep HTML, CSS, and JavaScript in separate files.
+- Organize JavaScript into clear functions and additional files when it helps readability.
+- Do not duplicate logic; prefer one shared place for behavior that appears in multiple spots.
+- Prefer simple, straightforward solutions over clever or obscure ones.
+
+## Comments and explanations
+
+- Write clean, readable code with comments that explain what each section does.
+- When you make a change, explain what you changed and why.
+
+## Boundaries
+
+- Do not refactor code the user did not ask you to refactor.
+- If you are unsure about something, say so instead of guessing.
