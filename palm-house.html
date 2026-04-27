@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conservatory | Palm House</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js" defer></script>
+    <script src="scripts/palm-house.js" defer></script>
+  </head>
+  <body class="room-page">
+    <div class="scene-shell">
+      <header class="room-header">
+        <h1>Palm House</h1>
+      </header>
+
+      <div class="scene-workbench">
+        <main class="scene-viewport">
+          <div id="sky-layer" class="layer sky-layer" aria-hidden="true"></div>
+          <img
+            src="assets/palmhouse.png"
+            alt=""
+            class="greenhouse-layer"
+            aria-hidden="true"
+          />
+          <div id="plant-layer" class="layer plant-layer" aria-hidden="true"></div>
+
+          <section class="hotspots" aria-label="Botanical hover notes">
+            <div class="hotspot hs-a" tabindex="0">
+              <span class="label">
+                Kentia Palm
+                <small>Feathery fronds and elegant indoor poise.</small>
+              </span>
+            </div>
+            <div class="hotspot hs-b" tabindex="0">
+              <span class="label">
+                Majesty Palm
+                <small>Slow-growing and happiest with bright moisture.</small>
+              </span>
+            </div>
+            <div class="hotspot hs-c" tabindex="0">
+              <span class="label">
+                Areca Palm
+                <small>Layered leaflets create a gentle filtered canopy.</small>
+              </span>
+            </div>
+          </section>
+        </main>
+
+        <aside class="control-rail" aria-label="Scene controls">
+          <h2>Scene Builder</h2>
+
+          <label class="control-group" for="sky-preset">
+            Sky preset
+            <select id="sky-preset">
+              <option value="brightDay">Bright blue day</option>
+              <option value="goldenHour">Golden hour</option>
+              <option value="overcast">Gray overcast</option>
+              <option value="stormy">Stormy dark</option>
+              <option value="softDusk" selected>Soft dusk pink</option>
+            </select>
+          </label>
+
+          <label class="control-group" for="plant-style">
+            Plant style
+            <select id="plant-style">
+              <option value="classic" selected>Palm House classic</option>
+              <option value="lush">Lush canopy</option>
+              <option value="airy">Airy stems</option>
+            </select>
+          </label>
+
+          <label class="control-group" for="plant-density">
+            Plant density
+            <input
+              id="plant-density"
+              type="range"
+              min="0"
+              max="100"
+              value="65"
+            />
+          </label>
+
+          <label class="control-group" for="stem-visibility">
+            Stem visibility
+            <input
+              id="stem-visibility"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </label>
+
+          <p class="control-note">
+            Placeholder controls for now. We can later skin these as custom UI or
+            room-specific instrumentation.
+          </p>
+        </aside>
+      </div>
+
+      <nav class="room-nav" aria-label="Room navigation">
+        <a class="room-chip active" href="palm-house.html">Palm House</a>
+        <a class="room-chip" href="rainforest.html?view=jungle">Rainforest</a>
+        <a class="room-chip" href="rainforest.html?view=desert">Desert</a>
+        <a class="room-chip" href="rainforest.html?view=aquatic">Aquatic</a>
+      </nav>
+    </div>
+  </body>
+</html>
