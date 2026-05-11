@@ -1,8 +1,23 @@
 (function initRainforest() {
   const skyLayerEl = document.getElementById("sky-layer");
+  const plantLayerEl = document.getElementById("plant-layer");
   const greenhouseImg = document.getElementById("greenhouse-img");
   const sceneViewportEl = greenhouseImg?.closest(".scene-viewport");
-  const skySelectEl = document.getElementById("sky-preset");
+  const addPlantButtonEl = document.getElementById("add-plant");
+  const assetRadioEls = () => document.querySelectorAll('input[name="plant-asset"]');
+  const ROOM_STORAGE_ID = "rainforest";
+
+  const drawnAssetBase = "assets/drawnplantassets/";
+  const drawnAssetFiles = {
+    monstera: "monstera.png",
+    birdofparadise: "birdofparadise.png",
+    pothos: "pothos.png",
+    curlyjungle: "curlyjungle.png"
+  };
+
+  const placedDrawnPlants = [];
+  const maxPlacedSprites = 40;
+  const dayMs = 45_000;
 
   function getLayerSize(layerEl) {
     const rect = layerEl.getBoundingClientRect();
@@ -90,7 +105,74 @@
     }
   };
 
-  let currentSkyPresetKey = skySelectEl?.value || "rainforestMist";
+  const skyCycle = ["brightDay", "stormy", "brightDay", "rainforestMist", "softDusk", "overcast"];
+  let skyPhaseStartedAt = Date.now();
+  const skyCycleState = {
+    cycleTargetKey:
+      skyCycle[Math.floor((Date.now() - skyPhaseStartedAt) / dayMs) % skyCycle.length],
+    skyCycle,
+    skyPhaseStartedAt,
+    dayMs
+  };
+  const skyBlend = {
+    blendFromKey: skyCycleState.cycleTargetKey,
+    blendToKey: skyCycleState.cycleTargetKey,
+    blendStartMs: null
+  };
+
+  function startSkyCycle() {
+    const tick = () => {
+      const phase = Math.floor((Date.now() - skyPhaseStartedAt) / dayMs) % skyCycle.length;
+      skyCycleState.cycleTargetKey = skyCycle[phase];
+    };
+    tick();
+    window.setInterval(tick, 2000);
+  }
+
+  function getSelectedAssetKey() {
+    const radios = assetRadioEls();
+    for (let i = 0; i < radios.length; i += 1) {
+      if (radios[i].checked) return radios[i].value;
+    }
+    return "monstera";
+  }
+
+  function getSelectedAssetSrc() {
+    const key = getSelectedAssetKey();
+    const file = drawnAssetFiles[key];
+    return file ? `${drawnAssetBase}${file}` : `${drawnAssetBase}monstera.png`;
+  }
+
+  function renderPlacedDrawnPlants() {
+    window.drawnPlantLayer?.renderPlacedDrawnPlants(plantLayerEl, placedDrawnPlants);
+    window.conservatoryEyeSpy?.syncConservatoryEyeSpyVisitor(plantLayerEl, ROOM_STORAGE_ID);
+  }
+
+  function addDrawnPlantsToRoom() {
+    const key = getSelectedAssetKey();
+    const src = getSelectedAssetSrc();
+    const pos = window.drawnPlantLayer?.computeDrawnPlantPlacement("rainforest", key, null, {
+      placedItems: placedDrawnPlants
+    });
+    if (!pos) return;
+    placedDrawnPlants.push({
+      src,
+      x: pos.x,
+      y: pos.y,
+      bottomOffsetPct: pos.bottomOffsetPct,
+      scalePct: pos.scalePct,
+      rotate: pos.rotate,
+      flipX: pos.flipX,
+      depth: pos.depth,
+      anchor: pos.anchor,
+      slotId: pos.slotId,
+      stackOrder: window.drawnPlantLayer.allocDrawnPlantStackOrder()
+    });
+    while (placedDrawnPlants.length > maxPlacedSprites) {
+      placedDrawnPlants.shift();
+    }
+    renderPlacedDrawnPlants();
+  }
 
   greenhouseImg?.addEventListener("load", applyViewportAspectFromLoadedImage);
   if (greenhouseImg?.complete) {
@@ -98,13 +180,16 @@
   }
 
   const skySketch = (p) => {
-    let activeSkyPreset = skyPresets[currentSkyPresetKey] || skyPresets.rainforestMist;
-    let cloudLayers = [];
-    let lastSkyPresetKey = currentSkyPresetKey;
+    let cloudLayersFrom = [];
+    let cloudLayersTo = [];
 
-    function rebuildCloudLayers() {
-      activeSkyPreset = skyPresets[currentSkyPresetKey] || skyPresets.rainforestMist;
-      cloudLayers = activeSkyPreset.layers.map((layer, i) => ({
+    function presetFor(key) {
+      return skyPresets[key] || skyPresets.rainforestMist;
+    }
+
+    function buildCloudLayersForKey(key) {
+      const preset = presetFor(key);
+      return preset.layers.map((layer, i) => ({
         ...layer,
         blobs: Array.from({ length: 5 + i * 2 }, () => ({
           x: p.random(p.width),
@@ -124,10 +209,16 @@
       return p.lerpColor(c1, c2, f);
     }
 
-    function drawSkyGrad() {
-      const allColors = [...activeSkyPreset.horizon, ...activeSkyPreset.mid, ...activeSkyPreset.zenith];
+    function drawSkyGradBlended(keyA, keyB, blendT) {
+      const pa = presetFor(keyA);
+      const pb = presetFor(keyB);
+      const colorsA = [...pa.horizon, ...pa.mid, ...pa.zenith];
+      const colorsB = [...pb.horizon, ...pb.mid, ...pb.zenith];
       for (let y = 0; y < p.height; y += 1) {
-        p.stroke(gradHex(allColors, y / p.height));
+        const ty = y / p.height;
+        const cA = gradHex(colorsA, ty);
+        const cB = gradHex(colorsB, ty);
+        p.stroke(p.lerpColor(cA, cB, blendT));
         p.line(0, y, p.width, y);
       }
     }
@@ -144,16 +235,21 @@
       p.ellipse(cx, cy + bh * 0.18, bw * 0.82, bh * 0.55);
     }
 
-    function drawCloudLayer(layer) {
-      const t = p.millis() * 0.001;
+    function advanceCloudLayer(layer) {
       layer.blobs.forEach((blob) => {
         blob.x -= layer.speed;
         if (blob.x + blob.bw * 0.5 < -10) blob.x = p.width + blob.bw * 0.5;
+      });
+    }
+
+    function drawCloudLayer(layer, alphaMul) {
+      const t = p.millis() * 0.001;
+      layer.blobs.forEach((blob) => {
         const wobbleY = p.sin(t * 0.4 + blob.wobble) * 3;
         const cy = layer.y * p.height + wobbleY;
         p.noStroke();
         const cloudColor = p.color(layer.color);
-        cloudColor.setAlpha(layer.opacity * 255);
+        cloudColor.setAlpha(layer.opacity * 255 * alphaMul);
         p.fill(cloudColor);
         for (let xi = -1; xi <= 1; xi += 1) {
           drawCloudShape(blob.x + xi * p.width, cy, blob.bw, blob.bh, t + blob.wobble);
@@ -161,36 +257,67 @@
       });
     }
 
+    function rebuildBothCloudSets() {
+      cloudLayersFrom = buildCloudLayersForKey(skyBlend.blendFromKey);
+      cloudLayersTo = buildCloudLayersForKey(skyBlend.blendToKey);
+    }
+
     p.setup = function setup() {
       const { width, height } = getLayerSize(skyLayerEl);
       const canvas = p.createCanvas(width, height);
       canvas.parent("sky-layer");
-      rebuildCloudLayers();
+      rebuildBothCloudSets();
     };
 
     p.draw = function draw() {
-      if (lastSkyPresetKey !== currentSkyPresetKey) {
-        lastSkyPresetKey = currentSkyPresetKey;
-        rebuildCloudLayers();
+      const blendApi = window.skyCycleBlend;
+      const synced = blendApi.syncSkyBlend(skyCycleState, skyBlend);
+      if (synced) {
+        rebuildBothCloudSets();
       }
-      drawSkyGrad();
-      cloudLayers.forEach(drawCloudLayer);
+      const blendT = blendApi.getBlendT(skyBlend);
+      const crossBlending = skyBlend.blendFromKey !== skyBlend.blendToKey && blendT < 1;
+
+      drawSkyGradBlended(skyBlend.blendFromKey, skyBlend.blendToKey, blendT);
+
+      if (crossBlending) {
+        cloudLayersFrom.forEach(advanceCloudLayer);
+        cloudLayersTo.forEach(advanceCloudLayer);
+        cloudLayersFrom.forEach((layer) => drawCloudLayer(layer, 1 - blendT));
+        cloudLayersTo.forEach((layer) => drawCloudLayer(layer, blendT));
+      } else {
+        cloudLayersTo.forEach(advanceCloudLayer);
+        cloudLayersTo.forEach((layer) => drawCloudLayer(layer, 1));
+      }
     };
 
     p.windowResized = function windowResized() {
       const { width, height } = getLayerSize(skyLayerEl);
       p.resizeCanvas(width, height);
-      rebuildCloudLayers();
+      rebuildBothCloudSets();
     };
   };
 
   new p5(skySketch);
-  if (typeof window.initRainforestPlants === "function") {
-    window.initRainforestPlants("plant-layer");
-  }
+  startSkyCycle();
 
-  skySelectEl?.addEventListener("change", (e) => {
-    currentSkyPresetKey = e.target.value;
+  function hydrateFromSavedRoom() {
+    const loaded = window.conservatoryStorage?.loadRoomPlants?.(ROOM_STORAGE_ID);
+    if (!loaded?.length) return;
+    for (let i = 0; i < loaded.length; i += 1) placedDrawnPlants.push(loaded[i]);
+    window.drawnPlantLayer?.syncStackOrderFromLoadedItems(placedDrawnPlants);
+  }
+  hydrateFromSavedRoom();
+  renderPlacedDrawnPlants();
+  window.conservatoryEyeSpy?.bindEyeSpyResize(plantLayerEl, ROOM_STORAGE_ID);
+
+  addPlantButtonEl?.addEventListener("click", addDrawnPlantsToRoom);
+
+  document.getElementById("done-next-room")?.addEventListener("click", () => {
+    if (!window.conservatoryStorage) return;
+    window.conservatoryStorage.saveRoomPlants(ROOM_STORAGE_ID, placedDrawnPlants);
+    window.conservatoryStorage.markRoomFinished(ROOM_STORAGE_ID);
+    window.location.href = window.conservatoryStorage.getNextRoomPage(ROOM_STORAGE_ID);
   });
 })();
 

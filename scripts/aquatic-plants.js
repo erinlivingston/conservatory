@@ -1,140 +1,145 @@
 /**
- * Simple aquatic plant strokes (optional helper for other scenes).
+ * Aquatic lily pads — HSB cluster layout, depth-sorted, notch + veins.
+ * Usage: initAquaticPlants('plant-layer')
  */
-(function registerAquaticPlantHelper(globalObj) {
-  function drawAquaticPlants(p) {
-    p.clear();
-  }
-
-  globalObj.drawAquaticPlants = drawAquaticPlants;
-})(window);
-
-
-// aquatic-plants.js — lily pads with p5.js
-// Usage: initAquaticPlants('your-container-id')
-// Requires p5.js to be loaded before this script
-
 function initAquaticPlants(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  new p5(function(p) {
-    const W = container.offsetWidth || 660;
-    const H = Math.round(W * 0.92);
+  new p5((p) => {
+    let pads = [];
+    let t = 0;
 
-    // Lily pads: x, y center as fraction of canvas; r radius / W; rot, gap (notch) in rad
-    const pads = [
-      { x: 0.12, y: 0.78, r: 0.048, rot: 0.5, gap: 1.05 },
-      { x: 0.22, y: 0.86, r: 0.042, rot: 2.2, gap: 0.95 },
-      { x: 0.30, y: 0.74, r: 0.055, rot: 1.1, gap: 1.1 },
-      { x: 0.38, y: 0.84, r: 0.046, rot: 3.4, gap: 1.0 },
-      { x: 0.44, y: 0.76, r: 0.078, rot: 0.4, gap: 1.2 },
-      { x: 0.54, y: 0.80, r: 0.062, rot: 2.8, gap: 0.9 },
-      { x: 0.48, y: 0.84, r: 0.052, rot: 1.8, gap: 1.0 },
-      { x: 0.58, y: 0.74, r: 0.068, rot: 4.1, gap: 1.1 },
-      { x: 0.50, y: 0.88, r: 0.044, rot: 0.7, gap: 0.85 },
-      { x: 0.42, y: 0.82, r: 0.056, rot: 3.3, gap: 1.05 },
-      { x: 0.62, y: 0.86, r: 0.050, rot: 5.0, gap: 0.95 },
-      { x: 0.38, y: 0.78, r: 0.045, rot: 2.1, gap: 1.15 },
-      { x: 0.56, y: 0.90, r: 0.038, rot: 1.2, gap: 0.8 },
-      { x: 0.46, y: 0.72, r: 0.060, rot: 3.8, gap: 1.0 },
-      { x: 0.65, y: 0.79, r: 0.042, rot: 0.2, gap: 0.9 },
-      { x: 0.72, y: 0.85, r: 0.040, rot: 4.5, gap: 0.92 },
-      { x: 0.82, y: 0.77, r: 0.052, rot: 1.6, gap: 1.08 },
-      { x: 0.88, y: 0.88, r: 0.038, rot: 2.9, gap: 0.88 },
-      { x: 0.08, y: 0.90, r: 0.036, rot: 0.9, gap: 0.9 },
-    ];
+    function buildPads() {
+      pads = [];
+      const W = p.width;
+      const H = p.height;
 
-    const padPhase = pads.map((_, i) => i * 0.91);
+      const clusters = [
+        { cx: W * 0.22 },
+        { cx: W * 0.55 },
+        { cx: W * 0.82 },
+      ];
 
-    // Perspective skew: compresses y and pulls x inward to simulate top-down view
-    function skewPt(x, y, cx, cy) {
-      const yScale = 0.38;
-      const xPull = 0.18;
-      const dy = y - cy;
-      const dx = x - cx;
-      return {
-        x: cx + dx * (1 - xPull * Math.abs(dy / (W * 0.1))),
-        y: cy + dy * yScale
-      };
-    }
+      const rows = [
+        { yFrac: 0.79, sizeMin: 32, sizeMax: 44, depth: 0.38, spread: 0.16 },
+        { yFrac: 0.86, sizeMin: 38, sizeMax: 52, depth: 0.62, spread: 0.18 },
+        { yFrac: 0.93, sizeMin: 44, sizeMax: 58, depth: 0.85, spread: 0.20 },
+      ];
 
-    function drawLilyPad(pad, idx) {
-      const t = p.frameCount * 0.016;
-      const drift = Math.sin(t + padPhase[idx]) * (W * 0.004);
-      const cx = pad.x * W;
-      const cy = pad.y * H + drift;
-      const r = pad.r * W;
-      const gap = pad.gap;
-      const rot = pad.rot + Math.sin(t * 0.8 + padPhase[idx] * 0.5) * 0.045;
-      const steps = 52;
-
-      function skewedPts(radiusScale) {
-        const pts = [];
-        for (let i = 0; i <= steps; i += 1) {
-          const a = rot + gap / 2 + (i / steps) * (p.TWO_PI - gap);
-          const rx = cx + Math.cos(a) * r * radiusScale;
-          const ry = cy + Math.sin(a) * r * radiusScale;
-          const s = skewPt(rx, ry, cx, cy);
-          pts.push(s);
+      for (const cl of clusters) {
+        for (const row of rows) {
+          const count = row.yFrac > 0.85 ? 4 : 3;
+          for (let i = 0; i < count; i++) {
+            const x = cl.cx + p.random(-W * row.spread, W * row.spread);
+            const y = row.yFrac * H + p.random(-5, 5);
+            const size = p.random(row.sizeMin, row.sizeMax);
+            pads.push(new LilyPad(x, y, size, row.depth));
+          }
         }
-        return pts;
       }
 
-      const outerPts = skewedPts(1.0);
-
-      p.noStroke();
-      p.fill(46, 116, 62, 240);
-      p.beginShape();
-      p.vertex(cx, cy);
-      outerPts.forEach((pt) => p.vertex(pt.x, pt.y));
-      p.endShape(p.CLOSE);
-
-      p.noFill();
-      p.stroke(34, 90, 48, 205);
-      p.strokeWeight(r * 0.034);
-      p.beginShape();
-      outerPts.forEach((pt) => p.vertex(pt.x, pt.y));
-      p.endShape();
-
-      p.stroke(66, 136, 74, 150);
-      p.strokeWeight(r * 0.019);
-      const veinCount = 8;
-      for (let v = 0; v < veinCount; v += 1) {
-        const a = rot + gap / 2 + ((v + 0.5) / veinCount) * (p.TWO_PI - gap);
-        const es = skewPt(cx + Math.cos(a) * r * 0.92, cy + Math.sin(a) * r * 0.92, cx, cy);
-        p.line(cx, cy, es.x, es.y);
+      for (let i = 0; i < 10; i++) {
+        const depthR = p.random();
+        const x = p.random(W * 0.05, W * 0.95);
+        const y = p.map(depthR, 0, 1, H * 0.79, H * 0.96);
+        const size = p.map(depthR, 0, 1, 30, 52);
+        pads.push(new LilyPad(x, y, size, depthR));
       }
 
-      const midA = rot + gap / 2 + (p.TWO_PI - gap) / 2;
-      const spineEnd = skewPt(cx + Math.cos(midA) * r * 0.94, cy + Math.sin(midA) * r * 0.94, cx, cy);
-      p.stroke(72, 146, 78, 165);
-      p.strokeWeight(r * 0.026);
-      p.line(cx, cy, spineEnd.x, spineEnd.y);
-
-      p.noStroke();
-      p.fill(62, 132, 74, 215);
-      const lipA = rot;
-      const lipW = r * 0.16;
-      const lipH = r * 0.055;
-      p.push();
-      const lipS = skewPt(cx + Math.cos(lipA) * r * 0.05, cy + Math.sin(lipA) * r * 0.05, cx, cy);
-      p.translate(lipS.x, lipS.y);
-      p.rotate(lipA + Math.atan2(Math.sin(lipA) * 0.38, Math.cos(lipA)));
-      p.rect(-lipW * 0.5, -lipH * 0.5, lipW, lipH, lipH * 0.4);
-      p.pop();
-      p.noStroke();
+      pads.sort((a, b) => a.baseY - b.baseY);
     }
 
-    p.setup = function setup() {
-      const cnv = p.createCanvas(W, H);
-      cnv.parent(containerId);
+    class LilyPad {
+      constructor(x, y, size, depth) {
+        this.x = x;
+        this.baseX = x;
+        this.y = y;
+        this.baseY = y;
+        this.size = size;
+        this.depth = depth;
+        this.notchAngle = p.random(p.TWO_PI);
+        this.wobbleOffset = p.random(100);
+        this.wobbleSpeed = p.random(0.008, 0.018);
+      }
+
+      update(tick) {
+        this.y = this.baseY + p.sin(tick * this.wobbleSpeed * 60 + this.wobbleOffset) * (3 + this.depth * 5);
+        this.x = this.baseX + p.sin(tick * this.wobbleSpeed * 40 + this.wobbleOffset) * (1 + this.depth * 2);
+      }
+
+      draw() {
+        const squish = p.map(this.depth, 0, 1, 0.22, 0.42);
+        const w = this.size;
+
+        // shadow
+        p.noStroke();
+        p.fill(15, 30, 25, 55);
+        p.ellipse(this.x + 2, this.y + 3, w * 0.9, w * squish * 0.7);
+
+        // pad color
+        const hue  = p.map(this.depth, 0, 1, 132, 142);
+        const sat  = p.map(this.depth, 0, 1, 58, 72);
+        const bri  = p.map(this.depth, 0, 1, 28, 42);
+        const briHi = p.map(this.depth, 0, 1, 38, 52);
+
+        // main body with notch
+        p.fill(hue, sat, bri, 230);
+        p.beginShape();
+        const steps = 38;
+        for (let i = 0; i < steps; i++) {
+          const a = (p.TWO_PI / steps) * i;
+          const notchDiff = p.abs(((a - this.notchAngle + p.PI * 3) % p.TWO_PI) - p.PI);
+          if (notchDiff < 0.26) continue;
+          const r = w * 0.5 * (1 + p.sin(a * 7 + this.wobbleOffset) * 0.018);
+          p.vertex(this.x + p.cos(a) * r, this.y + p.sin(a) * r * squish);
+        }
+        p.endShape(p.CLOSE);
+
+        // highlight
+        p.fill(hue, sat - 15, briHi, 90);
+        p.ellipse(this.x - w * 0.07, this.y - w * squish * 0.12, w * 0.5, w * squish * 0.35);
+
+        // veins
+        p.stroke(hue, sat, bri - 8, 75);
+        p.strokeWeight(0.5);
+        for (let v = 0; v < 7; v++) {
+          const va = this.notchAngle + p.map(v, 0, 6, 0.4, p.TWO_PI - 0.4);
+          p.line(this.x, this.y, this.x + p.cos(va) * w * 0.43, this.y + p.sin(va) * w * 0.43 * squish);
+        }
+        p.noStroke();
+      }
+    }
+
+    p.setup = function () {
+      const rect = container.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
+      p.createCanvas(w, h).parent(containerId);
       p.pixelDensity(1);
+      p.colorMode(p.HSB, 360, 100, 100, 255);
+      p.frameRate(30);
+      p.noStroke();
+      buildPads();
     };
 
-    p.draw = function draw() {
+    p.draw = function () {
       p.clear();
-      pads.forEach((pad, idx) => drawLilyPad(pad, idx));
+      t += 0.016;
+      for (const pad of pads) {
+        pad.update(t);
+        pad.draw();
+      }
+    };
+
+    p.windowResized = function () {
+      const rect = container.getBoundingClientRect();
+      const nw = Math.max(1, Math.floor(rect.width));
+      const nh = Math.max(1, Math.floor(rect.height));
+      p.resizeCanvas(nw, nh);
+      buildPads();
     };
   });
 }
+
+window.initAquaticPlants = initAquaticPlants;

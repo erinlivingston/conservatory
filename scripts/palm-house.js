@@ -3,6 +3,21 @@
   const plantLayerEl = document.getElementById("plant-layer");
   const greenhouseImg = document.querySelector(".greenhouse-layer");
   const sceneViewportEl = greenhouseImg?.closest(".scene-viewport");
+  const addPlantButtonEl = document.getElementById("add-plant");
+  const assetRadioEls = () => document.querySelectorAll('input[name="plant-asset"]');
+  const ROOM_STORAGE_ID = "palmhouse";
+
+  const drawnAssetBase = "assets/drawnplantassets/";
+  const drawnAssetFiles = {
+    curlyshorttree: "curlyshorttree.png",
+    fern: "fern.png",
+    spikeypalm: "spikeypalm.png",
+    tallpalm: "tallpalm.png"
+  };
+
+  const placedDrawnPlants = [];
+  const maxPlacedSprites = 40;
+  const dayMs = 45_000;
 
   function getLayerSize(layerEl) {
     const rect = layerEl.getBoundingClientRect();
@@ -84,18 +99,87 @@
     }
   };
 
-  const skySelectEl = document.getElementById("sky-preset");
-  let currentSkyPresetKey = skySelectEl?.value || "softDusk";
+  const skyCycle = ["brightDay", "stormy", "brightDay", "goldenHour", "softDusk", "overcast"];
+  let skyPhaseStartedAt = Date.now();
+  const skyCycleState = {
+    cycleTargetKey:
+      skyCycle[Math.floor((Date.now() - skyPhaseStartedAt) / dayMs) % skyCycle.length],
+    skyCycle,
+    skyPhaseStartedAt,
+    dayMs
+  };
+  const skyBlend = {
+    blendFromKey: skyCycleState.cycleTargetKey,
+    blendToKey: skyCycleState.cycleTargetKey,
+    blendStartMs: null
+  };
   const currentPlantStyle = "classic";
 
-  const skySketch = (p) => {
-    let activeSkyPreset = skyPresets[currentSkyPresetKey] || skyPresets.softDusk;
-    let cloudLayers = [];
-    let lastSkyPresetKey = currentSkyPresetKey;
+  function startSkyCycle() {
+    const tick = () => {
+      const phase = Math.floor((Date.now() - skyPhaseStartedAt) / dayMs) % skyCycle.length;
+      skyCycleState.cycleTargetKey = skyCycle[phase];
+    };
+    tick();
+    window.setInterval(tick, 2000);
+  }
 
-    function rebuildCloudLayers() {
-      activeSkyPreset = skyPresets[currentSkyPresetKey] || skyPresets.softDusk;
-      cloudLayers = activeSkyPreset.layers.map((layer, i) => ({
+  function getSelectedAssetKey() {
+    const radios = assetRadioEls();
+    for (let i = 0; i < radios.length; i += 1) {
+      if (radios[i].checked) return radios[i].value;
+    }
+    return "curlyshorttree";
+  }
+
+  function getSelectedAssetSrc() {
+    const key = getSelectedAssetKey();
+    const file = drawnAssetFiles[key];
+    return file ? `${drawnAssetBase}${file}` : `${drawnAssetBase}curlyshorttree.png`;
+  }
+
+  function renderPlacedDrawnPlants() {
+    window.drawnPlantLayer?.renderPlacedDrawnPlants(plantLayerEl, placedDrawnPlants);
+    window.conservatoryEyeSpy?.syncConservatoryEyeSpyVisitor(plantLayerEl, ROOM_STORAGE_ID);
+  }
+
+  function addDrawnPlantsToRoom() {
+    const key = getSelectedAssetKey();
+    const src = getSelectedAssetSrc();
+    const pos = window.drawnPlantLayer?.computeDrawnPlantPlacement("palmhouse", key, null, {
+      placedItems: placedDrawnPlants
+    });
+    if (!pos) return;
+    placedDrawnPlants.push({
+      src,
+      x: pos.x,
+      y: pos.y,
+      bottomOffsetPct: pos.bottomOffsetPct,
+      scalePct: pos.scalePct,
+      rotate: pos.rotate,
+      flipX: pos.flipX,
+      depth: pos.depth,
+      anchor: pos.anchor,
+      slotId: pos.slotId,
+      stackOrder: window.drawnPlantLayer.allocDrawnPlantStackOrder()
+    });
+    while (placedDrawnPlants.length > maxPlacedSprites) {
+      placedDrawnPlants.shift();
+    }
+    renderPlacedDrawnPlants();
+  }
+
+  const skySketch = (p) => {
+    let cloudLayersFrom = [];
+    let cloudLayersTo = [];
+
+    function presetFor(key) {
+      return skyPresets[key] || skyPresets.softDusk;
+    }
+
+    function buildCloudLayersForKey(key) {
+      const preset = presetFor(key);
+      return preset.layers.map((layer, i) => ({
         ...layer,
         blobs: Array.from({ length: 5 + i * 2 }, () => ({
           x: p.random(p.width),
@@ -115,10 +199,16 @@
       return p.lerpColor(c1, c2, f);
     }
 
-    function drawSkyGrad() {
-      const allColors = [...activeSkyPreset.horizon, ...activeSkyPreset.mid, ...activeSkyPreset.zenith];
+    function drawSkyGradBlended(keyA, keyB, blendT) {
+      const pa = presetFor(keyA);
+      const pb = presetFor(keyB);
+      const colorsA = [...pa.horizon, ...pa.mid, ...pa.zenith];
+      const colorsB = [...pb.horizon, ...pb.mid, ...pb.zenith];
       for (let y = 0; y < p.height; y += 1) {
-        p.stroke(gradHex(allColors, y / p.height));
+        const ty = y / p.height;
+        const cA = gradHex(colorsA, ty);
+        const cB = gradHex(colorsB, ty);
+        p.stroke(p.lerpColor(cA, cB, blendT));
         p.line(0, y, p.width, y);
       }
     }
@@ -135,16 +225,21 @@
       p.ellipse(cx, cy + bh * 0.18, bw * 0.82, bh * 0.55);
     }
 
-    function drawCloudLayer(layer) {
-      const t = p.millis() * 0.001;
+    function advanceCloudLayer(layer) {
       layer.blobs.forEach((blob) => {
         blob.x -= layer.speed;
         if (blob.x + blob.bw * 0.5 < -10) blob.x = p.width + blob.bw * 0.5;
+      });
+    }
+
+    function drawCloudLayer(layer, alphaMul) {
+      const t = p.millis() * 0.001;
+      layer.blobs.forEach((blob) => {
         const wobbleY = p.sin(t * 0.4 + blob.wobble) * 3;
         const cy = layer.y * p.height + wobbleY;
         p.noStroke();
         const cloudColor = p.color(layer.color);
-        cloudColor.setAlpha(layer.opacity * 255);
+        cloudColor.setAlpha(layer.opacity * 255 * alphaMul);
         p.fill(cloudColor);
         for (let xi = -1; xi <= 1; xi += 1) {
           drawCloudShape(blob.x + xi * p.width, cy, blob.bw, blob.bh, t + blob.wobble);
@@ -152,57 +247,72 @@
       });
     }
 
+    function rebuildBothCloudSets() {
+      cloudLayersFrom = buildCloudLayersForKey(skyBlend.blendFromKey);
+      cloudLayersTo = buildCloudLayersForKey(skyBlend.blendToKey);
+    }
+
     p.setup = function setup() {
       const { width, height } = getLayerSize(skyLayerEl);
       const canvas = p.createCanvas(width, height);
       canvas.parent("sky-layer");
-      rebuildCloudLayers();
+      rebuildBothCloudSets();
     };
 
     p.draw = function draw() {
-      if (lastSkyPresetKey !== currentSkyPresetKey) {
-        lastSkyPresetKey = currentSkyPresetKey;
-        rebuildCloudLayers();
+      const blendApi = window.skyCycleBlend;
+      const synced = blendApi.syncSkyBlend(skyCycleState, skyBlend);
+      if (synced) {
+        rebuildBothCloudSets();
       }
-      drawSkyGrad();
-      cloudLayers.forEach(drawCloudLayer);
+      const blendT = blendApi.getBlendT(skyBlend);
+      const crossBlending = skyBlend.blendFromKey !== skyBlend.blendToKey && blendT < 1;
+
+      drawSkyGradBlended(skyBlend.blendFromKey, skyBlend.blendToKey, blendT);
+
+      if (crossBlending) {
+        cloudLayersFrom.forEach(advanceCloudLayer);
+        cloudLayersTo.forEach(advanceCloudLayer);
+        cloudLayersFrom.forEach((layer) => drawCloudLayer(layer, 1 - blendT));
+        cloudLayersTo.forEach((layer) => drawCloudLayer(layer, blendT));
+      } else {
+        cloudLayersTo.forEach(advanceCloudLayer);
+        cloudLayersTo.forEach((layer) => drawCloudLayer(layer, 1));
+      }
     };
 
     p.windowResized = function windowResized() {
       const { width, height } = getLayerSize(skyLayerEl);
       p.resizeCanvas(width, height);
-      rebuildCloudLayers();
+      rebuildBothCloudSets();
     };
   };
 
   const plantSketch = (p) => {
-    const plantAnchors = [0.1, 0.35, 0.65, 0.85];
     const plants = [];
 
+    /* Shorter stems + fronds read as “leafy tops” along the greenhouse frame (top + sides), like vine bands. */
     const plantStyles = {
       classic: {
-        mainLength: [0.28, 0.42],
-        depth: [4, 6],
-        spread: [0.19, 0.33],
-        branchScale: [0.66, 0.76],
-        frondLength: [0.06, 0.11],
-        baseYOffset: [0.04, 0.1]
+        mainLenFrac: [0.065, 0.12],
+        depth: [2, 4],
+        spread: [0.22, 0.38],
+        branchScale: [0.58, 0.72],
+        frondLength: [0.075, 0.13]
       },
       lush: {
-        mainLength: [0.32, 0.46],
-        depth: [5, 7],
-        spread: [0.22, 0.36],
-        branchScale: [0.68, 0.78],
-        frondLength: [0.08, 0.13],
-        baseYOffset: [0.05, 0.12]
+        mainLenFrac: [0.08, 0.14],
+        depth: [2, 5],
+        spread: [0.24, 0.4],
+        branchScale: [0.6, 0.74],
+        frondLength: [0.09, 0.15]
       },
       airy: {
-        mainLength: [0.26, 0.38],
-        depth: [3, 5],
-        spread: [0.15, 0.26],
-        branchScale: [0.62, 0.72],
-        frondLength: [0.05, 0.09],
-        baseYOffset: [0.06, 0.14]
+        mainLenFrac: [0.055, 0.1],
+        depth: [2, 3],
+        spread: [0.18, 0.32],
+        branchScale: [0.56, 0.68],
+        frondLength: [0.065, 0.11]
       }
     };
 
@@ -228,13 +338,13 @@
       p.clear();
       p.noiseDetail(2, 0.55);
 
-      plants.forEach((plant, idx) => {
+      plants.forEach((plant) => {
         p.push();
-        p.translate(plant.baseX, p.height + plant.baseYOffset);
-        const sway = p.sin(p.frameCount * 0.008 + idx * 0.7) * 0.06;
+        p.translate(plant.baseX, plant.baseY);
+        const sway = p.sin(p.frameCount * plant.swaySpeed + plant.swayPhase) * plant.swayAmp;
         p.rotate(sway);
         p.randomSeed(plant.seed);
-        drawBranch(0, 0, plant.mainLength, -p.HALF_PI, plant.depth, plant);
+        drawBranch(0, 0, plant.mainLength, plant.baseAngle, plant.depth, plant);
         p.pop();
       });
     };
@@ -244,19 +354,19 @@
       const style = plantStyles[currentPlantStyle] || plantStyles.classic;
       const minDimension = Math.min(p.width, p.height);
       const d = 0.65;
+      let colorIdx = 0;
 
-      plantAnchors.forEach((anchor, idx) => {
+      function pushFramePlant(px, py, baseAngle) {
         const depth = p.floor(p.random(style.depth[0], style.depth[1] + 1));
-
+        const mainLenFrac = p.random(
+          p.lerp(style.mainLenFrac[0] * 0.9, style.mainLenFrac[0], d),
+          p.lerp(style.mainLenFrac[1], style.mainLenFrac[1] * 1.06, d)
+        );
         plants.push({
-          baseX: p.width * anchor,
-          baseYOffset: minDimension * p.random(style.baseYOffset[0], style.baseYOffset[1]),
-          mainLength:
-            minDimension *
-            p.random(
-              p.lerp(style.mainLength[0] * 0.92, style.mainLength[0], d),
-              p.lerp(style.mainLength[1], style.mainLength[1] * 1.06, d)
-            ),
+          baseX: px,
+          baseY: py,
+          baseAngle,
+          mainLength: minDimension * mainLenFrac,
           depth,
           spread: p.random(
             p.lerp(style.spread[0] * 0.9, style.spread[0], d),
@@ -265,15 +375,44 @@
           branchScale: p.random(style.branchScale[0], style.branchScale[1]),
           frondLength:
             minDimension *
+            1.18 *
             p.random(
               p.lerp(style.frondLength[0] * 0.85, style.frondLength[0], d),
               p.lerp(style.frondLength[1], style.frondLength[1] * 1.12, d)
             ),
-          leafClusterBias: p.floor(p.lerp(3, 8, d)),
-          color: greenPalette[idx % greenPalette.length],
-          seed: p.floor(p.random(10_000))
+          leafClusterBias: p.floor(p.lerp(3, 7, d)),
+          color: greenPalette[colorIdx % greenPalette.length],
+          seed: p.floor(p.random(10_000)),
+          swaySpeed: p.random(0.006, 0.011),
+          swayAmp: p.random(0.032, 0.09),
+          swayPhase: p.random(p.TWO_PI)
         });
-      });
+        colorIdx += 1;
+      }
+
+      const nTop = p.max(5, p.floor(p.width / 115));
+      const nSide = p.max(4, p.floor(p.height / 170));
+      const jTop = minDimension * 0.008;
+      const jSide = minDimension * 0.008;
+
+      for (let i = 0; i < nTop; i += 1) {
+        const u = (i + 0.5) / nTop;
+        pushFramePlant(
+          p.width * (0.02 + u * 0.96) + p.random(-jTop, jTop),
+          p.height * p.random(0.002, 0.026),
+          p.HALF_PI + p.random(-0.42, 0.42)
+        );
+      }
+      for (let i = 0; i < nSide; i += 1) {
+        const v = (i + 0.5) / nSide;
+        const y = p.height * (0.06 + v * 0.82) + p.random(-jSide, jSide);
+        pushFramePlant(p.width * p.random(0.001, 0.018), y, p.random(-0.32, 0.36));
+        pushFramePlant(
+          p.width * p.random(0.982, 0.999),
+          y,
+          p.PI + p.random(-0.36, 0.32)
+        );
+      }
     }
 
     function drawBranch(x1, y1, len, angle, depth, plant) {
@@ -372,10 +511,26 @@
   };
 
   new p5(skySketch);
-  const plantInstance = new p5(plantSketch);
+  new p5(plantSketch);
+  startSkyCycle();
 
-  skySelectEl?.addEventListener("change", (event) => {
-    currentSkyPresetKey = event.target.value;
+  function hydrateFromSavedRoom() {
+    const loaded = window.conservatoryStorage?.loadRoomPlants?.(ROOM_STORAGE_ID);
+    if (!loaded?.length) return;
+    for (let i = 0; i < loaded.length; i += 1) placedDrawnPlants.push(loaded[i]);
+    window.drawnPlantLayer?.syncStackOrderFromLoadedItems(placedDrawnPlants);
+  }
+  hydrateFromSavedRoom();
+  renderPlacedDrawnPlants();
+  window.conservatoryEyeSpy?.bindEyeSpyResize(plantLayerEl, ROOM_STORAGE_ID);
+
+  addPlantButtonEl?.addEventListener("click", addDrawnPlantsToRoom);
+
+  document.getElementById("done-next-room")?.addEventListener("click", () => {
+    if (!window.conservatoryStorage) return;
+    window.conservatoryStorage.saveRoomPlants(ROOM_STORAGE_ID, placedDrawnPlants);
+    window.conservatoryStorage.markRoomFinished(ROOM_STORAGE_ID);
+    window.location.href = window.conservatoryStorage.getNextRoomPage(ROOM_STORAGE_ID);
   });
 
 })();

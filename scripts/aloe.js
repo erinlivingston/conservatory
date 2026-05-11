@@ -1,6 +1,9 @@
 /**
  * Desert aloe renderer for p5 scenes.
- * Usage: drawAloePlant(p, { width?: number, height?: number, groundRatio?: number })
+ * Usage: drawAloePlant(p, { groundRatio?, clusterCount?, spanStart?, spanEnd?, clusterWidthRatio?,
+ *   scale?: number — overall size (default 1, capped ~2.4)
+ *   spikey?: boolean — denser, slightly longer marginal teeth
+ *   animateSpikes?: boolean — gentle length / wobble on those teeth })
  */
 (function initAloeRenderer(globalObj) {
   function drawAloePlant(p, opts = {}) {
@@ -11,6 +14,10 @@
     const spanStart = Number.isFinite(opts.spanStart) ? opts.spanStart : 0;
     const spanEnd = Number.isFinite(opts.spanEnd) ? opts.spanEnd : 1;
     const clusterWidth = Number.isFinite(opts.clusterWidthRatio) ? opts.clusterWidthRatio : 1;
+    const animateSpikes = !!opts.animateSpikes;
+    const spikey = !!opts.spikey;
+    const plantScale =
+      Number.isFinite(opts.scale) && opts.scale > 0 ? Math.min(opts.scale, 2.4) : 1;
 
     const leaves = [
       { bx: 0.4, angle: -80, len: 0.58, thick: 0.052, curve: 0.1, tint: 0 },
@@ -58,7 +65,7 @@
     }
 
     function getSpinePts(leaf, steps = 60) {
-      const len = leaf.len * H;
+      const len = leaf.len * H * plantScale;
       const rad = p.radians(leaf.angle);
       const bx = leaf.bx * W;
       const by = ground;
@@ -72,7 +79,7 @@
       const c1y = by + dy * len * 0.28 + droopAmt * 0.1;
       const c2x = bx + dx * len * 0.62 + crvX * 0.75;
       const c2y = by + dy * len * 0.68 + droopAmt * 0.65;
-      const baseThick = leaf.thick * W;
+      const baseThick = leaf.thick * W * plantScale;
       const pts = [];
 
       for (let i = 0; i <= steps; i += 1) {
@@ -102,7 +109,7 @@
 
     function drawLeaf(leaf) {
       const { pts, tipX, tipY } = getSpinePts(leaf);
-      const baseThick = leaf.thick * W;
+      const baseThick = leaf.thick * W * plantScale;
 
       p.noStroke();
       p.fill(leafColor(leaf.tint));
@@ -134,18 +141,38 @@
 
       p.fill(leafColor(Math.max(0, leaf.tint - 1), 230));
       p.noStroke();
-      for (let i = 5; i < pts.length - 2; i += 5) {
+      const spikeStep = spikey ? 4 : 5;
+      const spikeLenBoost = spikey ? 1.12 : 1;
+      for (let i = 5; i < pts.length - 2; i += spikeStep) {
         const pt = pts[i];
         const next = pts[Math.min(i + 2, pts.length - 1)];
-        const spikeLen = pt.halfW * 0.58 * (1 - pt.t * 0.5);
+        let spikeLen = pt.halfW * 0.58 * (1 - pt.t * 0.5) * spikeLenBoost;
+        if (animateSpikes) {
+          spikeLen *= 1 + 0.14 * Math.sin(p.frameCount * 0.1 + i * 0.95 + leaf.tint * 0.3);
+        }
         const spikeW = pt.halfW * 0.22;
+        const tanx = next.x - pt.x;
+        const tany = next.y - pt.y;
+        const tlen = Math.sqrt(tanx * tanx + tany * tany) || 1;
+        const ux = tanx / tlen;
+        const uy = tany / tlen;
         for (let s = -1; s <= 1; s += 2) {
-          const ex = pt.x + s * pt.px * (pt.halfW + spikeLen);
-          const ey = pt.y + s * pt.py * (pt.halfW + spikeLen);
-          const bax = pt.x + s * pt.px * pt.halfW - next.px * spikeW * s * 0.5 + (next.x - pt.x) * 0.15;
-          const bay = pt.y + s * pt.py * pt.halfW - next.py * spikeW * s * 0.5 + (next.y - pt.y) * 0.15;
-          const bbx = pt.x + s * pt.px * pt.halfW + next.px * spikeW * s * 0.5 - (next.x - pt.x) * 0.15;
-          const bby = pt.y + s * pt.py * pt.halfW + next.py * spikeW * s * 0.5 - (next.y - pt.y) * 0.15;
+          let ex = pt.x + s * pt.px * (pt.halfW + spikeLen);
+          let ey = pt.y + s * pt.py * (pt.halfW + spikeLen);
+          let bax = pt.x + s * pt.px * pt.halfW - next.px * spikeW * s * 0.5 + (next.x - pt.x) * 0.15;
+          let bay = pt.y + s * pt.py * pt.halfW - next.py * spikeW * s * 0.5 + (next.y - pt.y) * 0.15;
+          let bbx = pt.x + s * pt.px * pt.halfW + next.px * spikeW * s * 0.5 - (next.x - pt.x) * 0.15;
+          let bby = pt.y + s * pt.py * pt.halfW + next.py * spikeW * s * 0.5 - (next.y - pt.y) * 0.15;
+          if (animateSpikes) {
+            const poke = Math.sin(p.frameCount * 0.088 + i * 1.12 + s * 0.4) * (pt.halfW * 0.16);
+            const wiggle = Math.cos(p.frameCount * 0.072 + i * 0.85) * (pt.halfW * 0.07);
+            ex += pt.px * poke + ux * wiggle;
+            ey += pt.py * poke + uy * wiggle;
+            bax += ux * wiggle * 0.5;
+            bay += uy * wiggle * 0.5;
+            bbx += ux * wiggle * 0.5;
+            bby += uy * wiggle * 0.5;
+          }
           p.beginShape();
           p.vertex(bax, bay);
           p.vertex(ex, ey);

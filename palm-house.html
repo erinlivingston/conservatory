@@ -4,8 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Conservatory | Palm House</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js" defer></script>
+    <script src="scripts/drawn-plant-layer.js" defer></script>
+    <script src="scripts/conservatory-storage.js" defer></script>
+    <script src="scripts/eye-spy-in-room.js" defer></script>
+    <script src="scripts/nav-enter.js" defer></script>
+    <script src="scripts/sky-cycle.js" defer></script>
     <script src="scripts/palm-house.js" defer></script>
   </head>
   <body class="room-page">
@@ -18,62 +29,64 @@
         <main class="scene-viewport">
           <div id="sky-layer" class="layer sky-layer" aria-hidden="true"></div>
           <img
+            id="greenhouse-img"
             src="assets/palmhouse.png"
             alt=""
             class="greenhouse-layer"
             aria-hidden="true"
           />
           <div id="plant-layer" class="layer plant-layer" aria-hidden="true"></div>
-
-          <section class="hotspots" aria-label="Botanical hover notes">
-            <div class="hotspot hs-a" tabindex="0">
-              <span class="label">
-                Kentia Palm
-                <small>Feathery fronds and elegant indoor poise.</small>
-              </span>
-            </div>
-            <div class="hotspot hs-b" tabindex="0">
-              <span class="label">
-                Majesty Palm
-                <small>Slow-growing and happiest with bright moisture.</small>
-              </span>
-            </div>
-            <div class="hotspot hs-c" tabindex="0">
-              <span class="label">
-                Areca Palm
-                <small>Layered leaflets create a gentle filtered canopy.</small>
-              </span>
-            </div>
-          </section>
         </main>
+
+        <aside class="control-rail control-rail--plants-only" aria-label="Plant generator">
+          <h2>Plants</h2>
+          <p class="control-rail-intro">
+            Choose plants and add them to this room. Drag to arrange; hover a plant for size and turn sliders. Most recently added will always be the top layer.
+          </p>
+          <div class="plant-asset-options" role="radiogroup" aria-label="Drawn plant artwork">
+            <label class="plant-asset-option">
+              <input type="radio" name="plant-asset" value="curlyshorttree" checked aria-label="Curly short tree" />
+              <img src="assets/drawnplantassets/curlyshorttree.png" alt="" width="64" height="64" />
+            </label>
+            <label class="plant-asset-option">
+              <input type="radio" name="plant-asset" value="fern" aria-label="Fern" />
+              <img src="assets/drawnplantassets/fern.png" alt="" width="64" height="64" />
+            </label>
+            <label class="plant-asset-option">
+              <input type="radio" name="plant-asset" value="spikeypalm" aria-label="Spiky palm" />
+              <img src="assets/drawnplantassets/spikeypalm.png" alt="" width="64" height="64" />
+            </label>
+            <label class="plant-asset-option">
+              <input type="radio" name="plant-asset" value="tallpalm" aria-label="Tall palm" />
+              <img src="assets/drawnplantassets/tallpalm.png" alt="" width="64" height="64" />
+            </label>
+          </div>
+          <button id="add-plant" class="regen-button" type="button">Add to room</button>
+          <p class="control-note">
+            When you have many plants in the room, the oldest are removed to make space.
+          </p>
+          <button type="button" id="done-next-room" class="control-done-button">
+            Done — save &amp; next room
+          </button>
+          <p class="control-done-hint">
+            Saves this room on this device, then opens the next biome. After Aquatic, you will see all four rooms in one row with an eye spy tally.
+          </p>
+        </aside>
       </div>
 
       <nav class="room-nav" aria-label="Room navigation">
+        <a
+          class="room-chip room-chip--enter room-nav-enter"
+          href="index.html"
+          title="Clicking Enter resets all saved rooms in this browser and returns to the entrance."
+          >Enter</a>
         <a class="room-chip active" href="palm-house.html">Palm House</a>
         <a class="room-chip" href="rainforest.html">Rainforest</a>
         <a class="room-chip" href="desert.html">Desert</a>
         <a class="room-chip" href="aquatic.html">Aquatic</a>
+        <a class="room-chip" href="gallery.html">All rooms</a>
       </nav>
 
-      <aside class="control-rail below-viewport" aria-label="Scene controls">
-        <h2>Scene Builder</h2>
-
-        <label class="control-group" for="sky-preset">
-          Sky preset
-          <select id="sky-preset">
-            <option value="brightDay">Bright blue day</option>
-            <option value="goldenHour">Golden hour</option>
-            <option value="overcast">Gray overcast</option>
-            <option value="stormy">Stormy dark</option>
-            <option value="softDusk" selected>Soft dusk pink</option>
-          </select>
-        </label>
-
-        <p class="control-note">
-          Plant tuning controls are temporarily hidden while palm effects are
-          refined.
-        </p>
-      </aside>
     </div>
   </body>
 </html>
