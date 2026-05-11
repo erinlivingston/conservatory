@@ -73,13 +73,12 @@
   const statusEl = document.getElementById("gallery-tour-status");
   if (statusEl) {
     if (allFourDone) {
-      let msg =
-        "All four rooms are saved on this device. This page uses the same drifting p5 sky behind the layout; transparent areas in the room art show the live sky. Tiles are static previews — open a room from the bottom menu for full motion and biome p5 effects.";
       if (animalEligible) {
-        msg +=
-          " With animal eye spy unlocked, you can also tap a room title or its preview to jump straight into that biome.";
+        statusEl.textContent =
+          "All four rooms complete. Tap a room title or its preview to jump into that biome. Activate eye spy mode below to hide animals in the folliage.";
+      } else {
+        statusEl.textContent = "All four rooms are saved. Open any biome from the menu below.";
       }
-      statusEl.textContent = msg;
     } else {
       const n = window.conservatoryStorage?.getFinishedCount?.() ?? 0;
       statusEl.textContent = `Tour progress: ${n} of 4 rooms marked done. Use “Done - Save & Go to Next Room” in each biome, then return here after the last room.`;
@@ -90,7 +89,7 @@
   if (unlockMsg) {
     if (animalEligible) {
       unlockMsg.textContent =
-        "You have finished the tour with plants in every room — animal eye spy is unlocked. Use “Hide visitors in rooms” above, then open each biome from the bottom menu to find the tiny drawings tucked in the foliage.";
+        "You have finished the tour with plants added to each biome — animal eye spy is unlocked. Use “Hide visitors in rooms” above, then open each biome to find tiny animals tucked in the foliage.";
     } else {
       unlockMsg.textContent =
         "Make sure to add plants in all rooms to unlock eye spy mode (finish the tour with “Done - Save & Go to Next Room” and at least one plant saved in each biome).";
