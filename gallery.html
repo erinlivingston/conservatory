@@ -7,19 +7,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js" defer></script>
+    <script src="scripts/sky-cycle.js" defer></script>
+    <script src="scripts/sky-gradient-clouds.js" defer></script>
+    <script src="scripts/gallery-sky.js" defer></script>
     <script src="scripts/drawn-plant-layer.js" defer></script>
     <script src="scripts/conservatory-storage.js" defer></script>
     <script src="scripts/nav-enter.js" defer></script>
     <script src="scripts/gallery.js" defer></script>
   </head>
   <body class="room-page gallery-page">
+    <div id="gallery-sky-bg" class="gallery-sky-bg" aria-hidden="true"></div>
     <div class="scene-shell gallery-shell">
       <header class="room-header gallery-header">
-        <h1>Your four rooms</h1>
+        <h1>Your four biomes</h1>
       </header>
 
       <p id="gallery-tour-status" class="gallery-status" role="status"></p>
@@ -87,16 +92,42 @@
       >
         <h2 id="animal-eyespy-heading">Animal eye spy</h2>
         <p class="animal-eyespy-intro">
-          Bird in Rainforest, frog in Aquatic, palm civet in Palm House, desert rat in Desert — only in the
-          <strong>live</strong> rooms, not on this grid. When you spot one, tap it: you will jump to the next room until
+          Now that all four biomes have plants, you can play animal eye spy.
+          When you spot one, tap it: you will jump to the next room until
           all four are found.
         </p>
+        <div class="animal-preview-row animal-eyespy-preview" aria-hidden="true">
+          <img
+            class="animal-preview-row__item animal-preview-row__item--bird"
+            src="assets/drawneyespyassets/birdeyespy.png"
+            alt=""
+            decoding="async"
+          />
+          <img
+            class="animal-preview-row__item animal-preview-row__item--frog"
+            src="assets/drawneyespyassets/frogeyespy.png"
+            alt=""
+            decoding="async"
+          />
+          <img
+            class="animal-preview-row__item animal-preview-row__item--civet"
+            src="assets/drawneyespyassets/palmciveteyespy.png"
+            alt=""
+            decoding="async"
+          />
+          <img
+            class="animal-preview-row__item animal-preview-row__item--desert-rat"
+            src="assets/drawneyespyassets/desertrateyespy.png"
+            alt=""
+            decoding="async"
+          />
+        </div>
         <div class="animal-eyespy-actions">
           <button type="button" id="animal-eyespy-hide-in-rooms" class="regen-button animal-eyespy-primary-btn">
-            Hide visitors in rooms
+            Hide animals
           </button>
           <button type="button" id="animal-eyespy-clear" class="regen-button eyespy-secondary-btn" hidden>
-            Remove visitors
+            Remove animals
           </button>
         </div>
         <p id="animal-eyespy-status" class="animal-eyespy-status" role="status"></p>
@@ -110,27 +141,6 @@
         </button>
       </div>
 
-      <section class="eyespy-panel" aria-labelledby="eyespy-heading">
-        <h2 id="eyespy-heading">Eye spy</h2>
-        <p id="eyespy-unlock-msg" class="eyespy-info"></p>
-        <p class="eyespy-info eyespy-info--muted">
-          Animal eye spy runs in each conservatory room (use the menu below). Visitors sit between layers of your
-          placed plants. Clearing or resetting storage removes them.
-        </p>
-      </section>
-
-      <nav class="room-nav" aria-label="Room navigation">
-        <a
-          class="room-chip room-chip--enter room-nav-enter"
-          href="index.html"
-          title="Clicking Enter resets all saved rooms in this browser and returns to the entrance."
-          >Enter</a>
-        <a class="room-chip" href="palm-house.html">Palm House</a>
-        <a class="room-chip" href="rainforest.html">Rainforest</a>
-        <a class="room-chip" href="desert.html">Desert</a>
-        <a class="room-chip" href="aquatic.html">Aquatic</a>
-        <a class="room-chip active" href="gallery.html">All rooms</a>
-      </nav>
     </div>
   </body>
 </html>

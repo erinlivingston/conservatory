@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -62,15 +62,15 @@
             </label>
           </div>
           <button id="add-plant" class="regen-button" type="button">Add to room</button>
-          <p class="control-note">
-            When you have many plants in the room, the oldest are removed to make space.
-          </p>
-          <button type="button" id="done-next-room" class="control-done-button">
-            Done — save &amp; next room
+          <p class="control-note" data-plant-cap-note></p>
+          <button
+            type="button"
+            id="done-next-room"
+            class="control-done-button"
+            data-tooltip="Saves this room locally, then opens the next biome."
+          >
+            Done - Save &amp; Go to Next Room
           </button>
-          <p class="control-done-hint">
-            Saves this room on this device, then opens the next biome. After Aquatic, you will see all four rooms in one row with an eye spy tally.
-          </p>
         </aside>
       </div>
 

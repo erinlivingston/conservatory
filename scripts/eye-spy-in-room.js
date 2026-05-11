@@ -87,11 +87,13 @@
     const rect = plantLayerEl.getBoundingClientRect();
     const layerW = Math.max(1, rect.width);
     const layerH = Math.max(1, rect.height);
-    const wPx = (layerW * Number(placement.scalePct)) / 100;
+    /** Slightly larger than raw placement so visitors stay findable without dominating the scene */
+    const VISITOR_RENDER_SCALE = 1.18;
+    const wPx = ((layerW * Number(placement.scalePct)) / 100) * VISITOR_RENDER_SCALE;
     img.style.width = `${Math.max(1, Math.round(wPx))}px`;
     const maxHFrac =
-      placement.anchor === "bottomGrass" ? 0.2 : placement.anchor === "ground" ? 0.16 : 0.14;
-    img.style.maxHeight = `${layerH * maxHFrac}px`;
+      placement.anchor === "bottomGrass" ? 0.24 : placement.anchor === "ground" ? 0.2 : 0.175;
+    img.style.maxHeight = `${layerH * maxHFrac * VISITOR_RENDER_SCALE}px`;
 
     function onActivate(e) {
       e.preventDefault();

@@ -28,14 +28,61 @@
 
   const animalEligible = allFourDone && allRoomsPopulated;
 
+  function pageHrefForRoomId(roomId) {
+    const flow = window.conservatoryStorage?.ROOM_FLOW;
+    if (!flow) return null;
+    const row = flow.find((r) => r.id === roomId);
+    return row ? row.page : null;
+  }
+
+  /** When eye spy is unlocked, room titles and preview tiles link into each live biome. */
+  function wireGalleryRoomNavigation() {
+    if (!animalEligible) return;
+    document.querySelectorAll(".gallery-figure").forEach((fig) => {
+      const vp = fig.querySelector(".gallery-viewport[data-gallery-room]");
+      const h2 = fig.querySelector("h2.gallery-panel-title");
+      if (!vp || !h2 || vp.dataset.galleryNavWired === "1") return;
+      const roomId = vp.getAttribute("data-gallery-room");
+      const href = pageHrefForRoomId(roomId);
+      if (!href) return;
+      const label = h2.textContent.trim();
+      const a = document.createElement("a");
+      a.className = "gallery-panel-title__link";
+      a.href = href;
+      a.textContent = label;
+      h2.replaceChildren(a);
+
+      const go = () => {
+        window.location.href = href;
+      };
+      vp.classList.add("gallery-viewport--room-link");
+      vp.tabIndex = 0;
+      vp.setAttribute("role", "link");
+      vp.setAttribute("aria-label", `Open ${label} — edit this room`);
+      vp.addEventListener("click", go);
+      vp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          go();
+        }
+      });
+      vp.dataset.galleryNavWired = "1";
+    });
+  }
+
   const statusEl = document.getElementById("gallery-tour-status");
   if (statusEl) {
     if (allFourDone) {
-      statusEl.textContent =
-        "All four rooms are saved on this device. Tiles show greenhouse art and your placed plants (sharp, not rasterized). Use the menu to open any room — motion and p5 effects only appear there.";
+      let msg =
+        "All four rooms are saved on this device. This page uses the same drifting p5 sky behind the layout; transparent areas in the room art show the live sky. Tiles are static previews — open a room from the bottom menu for full motion and biome p5 effects.";
+      if (animalEligible) {
+        msg +=
+          " With animal eye spy unlocked, you can also tap a room title or its preview to jump straight into that biome.";
+      }
+      statusEl.textContent = msg;
     } else {
       const n = window.conservatoryStorage?.getFinishedCount?.() ?? 0;
-      statusEl.textContent = `Tour progress: ${n} of 4 rooms marked done. Use “Done — save & next room” in each biome, then return here after Aquatic.`;
+      statusEl.textContent = `Tour progress: ${n} of 4 rooms marked done. Use “Done - Save & Go to Next Room” in each biome, then return here after the last room.`;
     }
   }
 
@@ -46,7 +93,7 @@
         "You have finished the tour with plants in every room — animal eye spy is unlocked. Use “Hide visitors in rooms” above, then open each biome from the bottom menu to find the tiny drawings tucked in the foliage.";
     } else {
       unlockMsg.textContent =
-        "Make sure to add plants in all rooms to unlock eye spy mode (finish the tour with “Done — save & next room” and at least one plant saved in each biome).";
+        "Make sure to add plants in all rooms to unlock eye spy mode (finish the tour with “Done - Save & Go to Next Room” and at least one plant saved in each biome).";
     }
   }
 
@@ -115,6 +162,8 @@
     animalPanel.hidden = false;
   }
 
+  wireGalleryRoomNavigation();
+
   function refreshAnimalUiFromStorage() {
     const { released } = window.conservatoryStorage?.getEyeSpyState?.() || { released: false };
     if (clearVisitorsBtn) clearVisitorsBtn.hidden = !released;
@@ -149,12 +198,12 @@
   const startOver = document.getElementById("gallery-start-over");
   if (startOver) {
     startOver.addEventListener("click", () => {
-      const ok = global.confirm(
+      const ok = window.confirm(
         "Clear all saved rooms, eye spy visitors, and tour progress in this browser? This cannot be undone."
       );
       if (!ok) return;
       window.conservatoryStorage?.clearAllAndReset?.();
-      global.location.href = "index.html";
+      window.location.href = "index.html";
     });
   }
 })();

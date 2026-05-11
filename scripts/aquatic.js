@@ -17,7 +17,7 @@
 
   /** Each placement: one drawn plant in the plant layer (position/size as % of the layer). */
   const placedDrawnPlants = [];
-  const maxPlacedSprites = 40;
+  const maxPlacedSprites = window.conservatoryStorage?.MAX_DRAWN_PLANTS_PER_ROOM ?? 40;
   const dayMs = 45_000;
 
   function getLayerSize(layerEl) {

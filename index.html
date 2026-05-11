@@ -7,17 +7,56 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js" defer></script>
+    <script src="scripts/sky-cycle.js" defer></script>
+    <script src="scripts/sky-gradient-clouds.js" defer></script>
+    <script src="scripts/entrance-sky.js" defer></script>
+    <script src="scripts/entrance-plant-strip.js" defer></script>
   </head>
   <body class="entrance-page">
-    <main class="entrance-shell">
-      <h1>Conservatory</h1>
-      <p class="entrance-copy">Four biome rooms — add plants, save, explore.</p>
-      <a class="enter-button" href="palm-house.html">Enter</a>
-      <p class="entrance-alt"><a href="gallery.html">All rooms</a></p>
-    </main>
+    <div id="entrance-sky-bg" class="entrance-sky-bg" aria-hidden="true"></div>
+    <div class="entrance-layout">
+      <div class="entrance-layout__center">
+        <main class="entrance-shell">
+          <h1>Custom Conservatory</h1>
+          <p class="entrance-copy">
+            Explore these four biome rooms and add plants to build your own world. Once rooms are
+            complete, play animal eye spy
+          </p>
+          <div class="animal-preview-row entrance-animal-preview" aria-hidden="true">
+            <img
+              class="animal-preview-row__item animal-preview-row__item--bird"
+              src="assets/drawneyespyassets/birdeyespy.png"
+              alt=""
+              decoding="async"
+            />
+            <img
+              class="animal-preview-row__item animal-preview-row__item--frog"
+              src="assets/drawneyespyassets/frogeyespy.png"
+              alt=""
+              decoding="async"
+            />
+            <img
+              class="animal-preview-row__item animal-preview-row__item--civet"
+              src="assets/drawneyespyassets/palmciveteyespy.png"
+              alt=""
+              decoding="async"
+            />
+            <img
+              class="animal-preview-row__item animal-preview-row__item--desert-rat"
+              src="assets/drawneyespyassets/desertrateyespy.png"
+              alt=""
+              decoding="async"
+            />
+          </div>
+          <a class="enter-button" href="palm-house.html">Enter</a>
+        </main>
+      </div>
+      <div class="entrance-plant-strip" aria-hidden="true"></div>
+    </div>
   </body>
 </html>

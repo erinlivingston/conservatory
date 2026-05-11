@@ -5,6 +5,9 @@
 (function registerConservatoryStorage(global) {
   const STORAGE_KEY = "conservatory.bundle.v1";
 
+  /** Max drawn plants kept per room; oldest removed when exceeded (room scripts enforce this). */
+  const MAX_DRAWN_PLANTS_PER_ROOM = 40;
+
   /** @type {{ id: string, page: string, label: string }[]} */
   const ROOM_FLOW = [
     { id: "palmhouse", page: "palm-house.html", label: "Palm House" },
@@ -97,7 +100,7 @@
         y,
         anchor,
         bottomOffsetPct,
-        scalePct: 2.8 + Math.random() * 3.2,
+        scalePct: 3.2 + Math.random() * 3.8,
         rotate: -45 + Math.random() * 90,
         flipX: Math.random() < 0.5,
         zIndex
@@ -228,10 +231,19 @@
     global.localStorage.removeItem(STORAGE_KEY);
   }
 
+  function syncPlantCapControlNotes() {
+    if (!global.document?.querySelectorAll) return;
+    const msg = `When the room reaches ${MAX_DRAWN_PLANTS_PER_ROOM} plants, adding another removes the oldest to make space.`;
+    global.document.querySelectorAll("[data-plant-cap-note]").forEach((el) => {
+      el.textContent = msg;
+    });
+  }
+
   global.conservatoryStorage = {
     STORAGE_KEY,
     ROOM_FLOW,
     ROOM_IDS,
+    MAX_DRAWN_PLANTS_PER_ROOM,
     readBundle,
     writeBundle,
     saveRoomPlants,
@@ -244,6 +256,9 @@
     releaseEyeSpyVisitors,
     clearEyeSpyVisitors,
     getEyeSpyState,
-    handleEyeSpyAnimalClick
+    handleEyeSpyAnimalClick,
+    syncPlantCapControlNotes
   };
+
+  syncPlantCapControlNotes();
 })(window);
