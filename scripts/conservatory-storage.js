@@ -33,7 +33,7 @@
     try {
       const raw = global.localStorage.getItem(STORAGE_KEY);
       if (!raw) return emptyBundle();
-      const o = JSON.parse(o);
+      const o = JSON.parse(raw);
       return {
         rooms: o.rooms && typeof o.rooms === "object" ? o.rooms : {},
         finishedRoomIds: Array.isArray(o.finishedRoomIds) ? o.finishedRoomIds : [],

@@ -113,8 +113,6 @@
     blendToKey: skyCycleState.cycleTargetKey,
     blendStartMs: null
   };
-  const currentPlantStyle = "classic";
-
   function startSkyCycle() {
     const tick = () => {
       const phase = Math.floor((Date.now() - skyPhaseStartedAt) / dayMs) % skyCycle.length;
@@ -291,31 +289,6 @@
   const plantSketch = (p) => {
     const plants = [];
 
-    /* Shorter stems + fronds read as “leafy tops” along the greenhouse frame (top + sides), like vine bands. */
-    const plantStyles = {
-      classic: {
-        mainLenFrac: [0.065, 0.12],
-        depth: [2, 4],
-        spread: [0.22, 0.38],
-        branchScale: [0.58, 0.72],
-        frondLength: [0.075, 0.13]
-      },
-      lush: {
-        mainLenFrac: [0.08, 0.14],
-        depth: [2, 5],
-        spread: [0.24, 0.4],
-        branchScale: [0.6, 0.74],
-        frondLength: [0.09, 0.15]
-      },
-      airy: {
-        mainLenFrac: [0.055, 0.1],
-        depth: [2, 3],
-        spread: [0.18, 0.32],
-        branchScale: [0.56, 0.68],
-        frondLength: [0.065, 0.11]
-      }
-    };
-
     const greenPalette = [
       [29, 86, 53],
       [58, 123, 72],
@@ -351,68 +324,33 @@
 
     function regeneratePlants() {
       plants.length = 0;
-      const style = plantStyles[currentPlantStyle] || plantStyles.classic;
       const minDimension = Math.min(p.width, p.height);
-      const d = 0.65;
-      let colorIdx = 0;
+      const h = p.height;
+      const w = p.width;
+      p.randomSeed(42 + Math.floor(w) * 31 + Math.floor(h) * 17);
 
-      function pushFramePlant(px, py, baseAngle) {
-        const depth = p.floor(p.random(style.depth[0], style.depth[1] + 1));
-        const mainLenFrac = p.random(
-          p.lerp(style.mainLenFrac[0] * 0.9, style.mainLenFrac[0], d),
-          p.lerp(style.mainLenFrac[1], style.mainLenFrac[1] * 1.06, d)
-        );
-        plants.push({
-          baseX: px,
-          baseY: py,
-          baseAngle,
-          mainLength: minDimension * mainLenFrac,
-          depth,
-          spread: p.random(
-            p.lerp(style.spread[0] * 0.9, style.spread[0], d),
-            p.lerp(style.spread[1], style.spread[1] * 1.08, d)
-          ),
-          branchScale: p.random(style.branchScale[0], style.branchScale[1]),
-          frondLength:
-            minDimension *
-            1.18 *
-            p.random(
-              p.lerp(style.frondLength[0] * 0.85, style.frondLength[0], d),
-              p.lerp(style.frondLength[1], style.frondLength[1] * 1.12, d)
-            ),
-          leafClusterBias: p.floor(p.lerp(3, 7, d)),
-          color: greenPalette[colorIdx % greenPalette.length],
-          seed: p.floor(p.random(10_000)),
-          swaySpeed: p.random(0.006, 0.011),
-          swayAmp: p.random(0.032, 0.09),
-          swayPhase: p.random(p.TWO_PI)
-        });
-        colorIdx += 1;
-      }
+      const depth = p.floor(p.random(4, 6));
+      const mainLength = h * p.random(0.28, 0.38);
+      const baseX = w * p.random(0.84, 0.93);
+      const baseY = h * p.random(0.96, 0.995);
+      const baseAngle = -p.HALF_PI + p.random(-0.3, 0.18);
 
-      const nTop = p.max(5, p.floor(p.width / 115));
-      const nSide = p.max(4, p.floor(p.height / 170));
-      const jTop = minDimension * 0.008;
-      const jSide = minDimension * 0.008;
-
-      for (let i = 0; i < nTop; i += 1) {
-        const u = (i + 0.5) / nTop;
-        pushFramePlant(
-          p.width * (0.02 + u * 0.96) + p.random(-jTop, jTop),
-          p.height * p.random(0.002, 0.026),
-          p.HALF_PI + p.random(-0.42, 0.42)
-        );
-      }
-      for (let i = 0; i < nSide; i += 1) {
-        const v = (i + 0.5) / nSide;
-        const y = p.height * (0.06 + v * 0.82) + p.random(-jSide, jSide);
-        pushFramePlant(p.width * p.random(0.001, 0.018), y, p.random(-0.32, 0.36));
-        pushFramePlant(
-          p.width * p.random(0.982, 0.999),
-          y,
-          p.PI + p.random(-0.36, 0.32)
-        );
-      }
+      plants.push({
+        baseX,
+        baseY,
+        baseAngle,
+        mainLength,
+        depth,
+        spread: p.random(0.17, 0.26),
+        branchScale: p.random(0.56, 0.68),
+        frondLength: minDimension * p.random(0.09, 0.13),
+        leafClusterBias: p.floor(p.random(5, 8)),
+        color: greenPalette[p.floor(p.random(greenPalette.length))],
+        seed: p.floor(p.random(10_000)),
+        swaySpeed: p.random(0.004, 0.008),
+        swayAmp: p.random(0.025, 0.05),
+        swayPhase: p.random(p.TWO_PI)
+      });
     }
 
     function drawBranch(x1, y1, len, angle, depth, plant) {
